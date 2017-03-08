@@ -478,6 +478,7 @@ class TetrDialog(ModelessDialog):
             self._updateText(self.tetr.getOutput())
             self.tetr.refreshGeom()
             self.SetViewOption()
+            self.axis_toggle()
     
     #produces a dialogue that offers help on the reset button
     def resetHelp(self):
