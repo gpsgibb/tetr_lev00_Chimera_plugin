@@ -26,6 +26,15 @@ class TetrDialog(ModelessDialog):
         ModelessDialog.__init__(self, *args, **kw)
         print "In init"
         
+        self.home=os.path.expanduser("~")
+        self.tetrdir=self.home+"/.Tetr"
+        tetrfile=self.tetrdir+"/tetr_root.dat"
+        
+        #check for ~/.Tetr. If it doesn't exist, create it
+        if not (os.path.isdir(self.tetrdir)):
+            print "Making ",self.tetrdir
+            os.mkdir(self.tetrdir)
+        
         #Look for the tetr root directory. Prompt user if necessary
         self.getTetrDir()
         
@@ -369,14 +378,23 @@ class TetrDialog(ModelessDialog):
             
     #try to find the tetr root directory. If not, ask the user to give it        
     def getTetrDir(self):
-        self.home=os.path.expanduser("~")
-        self.tetrdir=self.home+"/.Tetr"
-        tetrfile=self.tetrdir+"/tetr_root.dat"
         
-        #check for ~/.Tetr. If it doesn't exist, create it
-        if not (os.path.isdir(self.tetrdir)):
-            print "Making ",self.tetrdir
-            os.mkdir(self.tetrdir)
+        #check for HOME_TETR environment variable
+        home_tetr=os.environ.get("HOME_TETR")
+        
+        if home_tetr != None:
+            print "$HOME_TETR defined as: ",home_tetr
+            if os.path.isfile(home_tetr+"/tetr"):
+                print "$HOME_TETR/tetr exists! Using it"
+                self.rootdir=home_tetr
+                return
+            else:
+                print "$HOME_TETR/tetr does not exist"
+        else:
+            print "$HOME_TETR not defined in enviroment"
+        
+        
+        
         
         # if the tetr root file exists, use the path in it, else prompt the user
         if not os.path.isfile(tetrfile):
