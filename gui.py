@@ -64,6 +64,9 @@ class TetrDialog(ModelessDialog):
         #allow window (and things within it) to be resizable
         parent.rowconfigure(0,weight=1)
         parent.columnconfigure(0,weight=1)
+        
+        #if the window is clicked on, the entry widget is given focus
+        parent.bind("<Button-1>", self.focus_callback)
        
         
 #################### Create tetr output widget and label (LHS of window) #####################
@@ -240,11 +243,16 @@ class TetrDialog(ModelessDialog):
         # Tell the entry widget to watch the input
         self.tetrInput = Tk.StringVar()
         self.entry["textvariable"] = self.tetrInput
+        self.entry.focus_set()
 
         # Get a callback when return key is pressed
 
         self.entry.bind('<Key-Return>', self._updateInput)
         
+    
+    #gives focus to the entry widget
+    def focus_callback(self,e):
+        self.entry.focus_set()
         
         
         
