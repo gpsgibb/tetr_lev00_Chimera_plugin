@@ -37,7 +37,7 @@ class Tetr():
         print(wkdir)
         print(rootdir)
         self.wkdir=wkdir
-        self.tetrProc = subprocess.Popen(rootdir+"/tetr",
+        self.tetrProc = subprocess.Popen([rootdir+"/tetr","CHIMERA=.true."],
                                          stdin=subprocess.PIPE,
                                          stdout=subprocess.PIPE,
                                          stderr=subprocess.STDOUT,
