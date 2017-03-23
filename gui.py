@@ -28,7 +28,6 @@ class TetrDialog(ModelessDialog):
         
         self.home=os.path.expanduser("~")
         self.tetrdir=self.home+"/.Tetr"
-        tetrfile=self.tetrdir+"/tetr_root.dat"
         
         #check for ~/.Tetr. If it doesn't exist, create it
         if not (os.path.isdir(self.tetrdir)):
@@ -277,13 +276,20 @@ class TetrDialog(ModelessDialog):
     def _updateInput(self, event=0):
         
         inString = self.tetrInput.get()
-        self.tetr.setInput(inString)
+        try:
+            self.tetr.setInput(inString)
+        except IOError:
+            tkMessageBox.showerror("Error","The tetr process has ended (user-exited or crashed). Please restart tetr via the 'Restart' button.")
+            return
         #self._updateText(inString + "\n")
         self.tetrInput.set("")
         
         time.sleep(pausetime) #wait for tetr to do its thing
-        
-        outputText = self.tetr.getOutput()
+        try:
+            outputText = self.tetr.getOutput()
+        except IOError:
+            tkMessageBox.showerror("Error","The tetr process has ended (user-exited or crashed). Please restart tetr via the 'Restart' button.")
+            return
         self._updateText(outputText) #update tetr output text
         self.tetr.refreshGeom() #update model in chimera
         
@@ -395,8 +401,8 @@ class TetrDialog(ModelessDialog):
         
         
         
-        
-        # if the tetr root file exists, use the path in it, else prompt the user
+         # if the tetr root file exists, use the path in it, else prompt the user
+        tetrfile=self.tetrdir+"/tetr_root.dat"
         if not os.path.isfile(tetrfile):
             self.SetTetrRoot()
         else:
