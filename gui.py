@@ -319,7 +319,7 @@ class TetrDialog(ModelessDialog):
         #produce axis file
         print "Opening ",axisfile
         f=open(axisfile,"w")
-        f.write(".sphere "+str(xs)+" "+str(ys)+" "+str(zs)+" "+str(0.1*ls)+"\n")
+        #f.write(".sphere "+str(xs)+" "+str(ys)+" "+str(zs)+" "+str(0.5)+"\n") #uncomment to display ball in axis
         
         f.write(".color 1 0 0\n")
         f.write(".arrow "+str(xs)+" "+str(ys)+" "+str(zs)+" "+str(ls+xs)+" "+str(ys)+" "+str(zs)+"\n")
