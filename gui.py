@@ -263,13 +263,45 @@ class TetrDialog(ModelessDialog):
     
     #gets the atom selections from chimera and pastes the text into the tetr input box 
     def GetSelection(self):
+        
+        length=self.getmaxlen()
+        if length <=0:
+            length=1000
+            print("Warning cannot find length - resorting to default of 1000")
+        
         text=self.tetr.GetSelection()
         if text==None:
             tkMessageBox.showwarning("Warning","No atoms in selection")
-        elif len(text) > 200:
+        elif len(text) > length:
             tkMessageBox.showwarning("Warning","The size of the selection string is too big to be input into tetr. Please make a smaller selection.")
         else:
             self.tetrInput.set(text)
+    
+    #find the length of input lines in real8.inc in the tetr source directory
+    def getmaxlen(self):
+
+        file = self.rootdir+"/real8.inc"
+        f=open(file,"r")
+
+        n=0
+        length=-1
+        for line in f:
+            n+=1
+            pos=line.find("LENG2=")
+            if pos >=0: #if we found this in a line...
+                ln=line[pos+6:-1]
+                for i in range(len(ln)): #read in number till the end of the number
+                    if not ln[i].isdigit():
+                        break
+                num=ln[0:i]
+                length=int(num)
+                break
+
+        f.close()
+
+        print "line length=",length
+        return length
+
     
     #puts up a dialogue offering help with the selection feature
     def selectionHelp(self):
