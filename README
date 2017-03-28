@@ -1,0 +1,47 @@
+This is a plugin for UCSF Chimera that interfaces it with the command line 
+utility Tetr.
+
+Tetr is an interactive menu-driven program which allows the creation and 
+modification of input files for codes such as VASP, SIESTA, CASTEP etc.
+This plugin allows the user to visualise the current model being constructed
+in Chimera, whilst allowing the user to select atoms using the GUI and send
+that selection into Tetr.
+
+More information on Tetr can be found at:
+http://nms.kcl.ac.uk/lev.kantorovitch/codes/lev00/index.html
+and
+http://nms.kcl.ac.uk/lev.kantorovitch/codes/lev00/manual_lev00_2-45c+tetr_3-94h6.html
+
+
+INSTALLATION INSTRUCTIONS:
+
+*** Tetr only works with UNIX-based operating systems, not MS Windows ****
+
+For this plugin, you require UCSF Chimera, which can be downloaded here:
+https://www.cgl.ucsf.edu/chimera/download.html
+and Tetr, which can be downloaded here:
+http://nms.kcl.ac.uk/lev.kantorovitch/codes/lev00/index.html
+
+Tetr must be compiled in order to be used. To do this, in the source directory
+of Tetr, go into the Makefile and alter the line beginning "FCOMPL=" to contain
+the Fortran compiler of your choice (e.g. gfortran, ifort etc...). Then set 
+the environment variable HOME_TETR in your shell (e.g. inside your .bashrc)
+to point to the Tetr source directory.
+
+Finally, this directory must be placed inside the "share" directory within the
+Chimera directory tree. In Linux this will be kept in:
+/path/to/UCSF_Chimera/share
+Whilst on MacOS this will be located in
+/path/to/Chimera.app/Contents/Resources/share
+
+USAGE INSTRUCTIONS
+
+Once installed (see above), the Tetr plugin should be visible in the 
+Tools -> Utilities menu in the Chimera GUI.
+
+Upon its first launch, the Tetr plugin may prompt for the path to the Tetr
+executable (unless the HOME_TETR environment variable is set). This will be
+cached in $HOME/.Tetr/tetr_root.dat so you should not be prompted again.
+
+The Tetr plugin will then ask you the path to the working directory you wish
+to use.
