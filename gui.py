@@ -23,6 +23,8 @@ class TetrDialog(ModelessDialog):
     title = "Enter Tetr Commands"
 
     def __init__(self, sessionData=None, *args, **kw):
+        self.fulltext=""
+        self.toption=0
         ModelessDialog.__init__(self, *args, **kw)
         print "In init"
         
@@ -43,19 +45,25 @@ class TetrDialog(ModelessDialog):
         # Create tetr process
         self.tetr = Tetr.Tetr(self.rootdir,self.wkdir)
         
+        self.wdirlabel.config(text="wkdir= '"+self.wkdir+"'")
+        
         # Create variable to store Tetr output
         self.tetrOutput = Tk.StringVar()
         
         time.sleep(pausetime)
         
+        
+        
         #Update the tetr text on screen
-        self._updateText(self.tetr.getOutput())
+        self.updateText(self.tetr.getOutput())
         
         #load 'geom.xyz'
         self.tetr.refreshGeom()
         
         #set view options to those selected in the GUI
         self.SetViewOption()
+        
+        
 
     def fillInUI(self, parent):
         self.parent=parent
@@ -77,10 +85,14 @@ class TetrDialog(ModelessDialog):
         
         tetrFrame.columnconfigure(0,weight=1) #make resizable in the x direction
         
+        #Tetr working directory label:
+        self.wdirlabel=Tk.Label(tetrFrame,text="wkdir= '?'")
+        self.wdirlabel.grid(row=row,column=0,sticky=Tk.W)
+        row+=1
         
         #label for the tetr output
-        Tk.Label(tetrFrame, text="Tetr Output:").grid(row=row,column=0, sticky=Tk.W)
-        row += 1
+        #Tk.Label(tetrFrame, text="Tetr Output:").grid(row=row,column=0, sticky=Tk.W)
+        #row += 1
         tetrrow=row
         
         #tetr text output widget (with scrollbar)
@@ -100,7 +112,7 @@ class TetrDialog(ModelessDialog):
                    add = True)
 
         # set the initial text
-        self._updateText("Tetr starting...")
+        self.updateText("Tetr starting...\n")
         
         
 #################### Create options frame (RHS of window) #####################
@@ -141,8 +153,19 @@ class TetrDialog(ModelessDialog):
             Tk.Radiobutton(viewFrame,text=txt,padx=20,variable=self.voption,
                            command=self.SetViewOption,value=val).grid(row=framerow, column=framecol,sticky=Tk.W)
         
-        optionsrow +=1
+       
         
+        self.showAtom=Tk.IntVar()
+        self.showNumber=Tk.IntVar()
+        
+        framerow+=1
+        Tk.Checkbutton(viewFrame,text="Show Numbers" ,variable=self.showNumber,command=self.UpdateLabels).grid(row=framerow,column=framecol,sticky=Tk.W)
+        
+        framerow+=1
+        Tk.Checkbutton(viewFrame,text="Show Species" ,variable=self.showAtom,command=self.UpdateLabels).grid(row=framerow,column=framecol,sticky=Tk.W)
+        
+        
+        optionsrow +=1
         Tk.Label(optionsFrame,text=" ").grid(row=optionsrow) #blank space
         
         
@@ -194,7 +217,33 @@ class TetrDialog(ModelessDialog):
         Tk.Label(optionsFrame,text=" ").grid(row=optionsrow) #blank space
         
         
+#-------frame for tetr options ------------
+        optionsrow+=1
         
+        toptFrame=Tk.Frame(optionsFrame,relief=Tk.GROOVE,borderwidth=1)
+        toptFrame.grid(row=optionsrow,sticky=Tk.W+Tk.E)
+        
+        Tk.Label(toptFrame,text="Tetr console:").grid(row=0,sticky=Tk.W)
+        
+        tetroptions = [
+            ("Latest output",0),
+            ("All output",1),
+        ]
+        
+        self.tetrDispOption=Tk.IntVar()
+        self.tetrDispOption.set(0) #set initial view option 
+        
+        framecol=0
+        framerow=0
+        
+        for txt,val in tetroptions:
+            framerow+=1
+            Tk.Radiobutton(toptFrame,text=txt,padx=20,variable=self.tetrDispOption,
+                           command=self.SwitchTetrView,value=val).grid(row=framerow, column=framecol,sticky=Tk.W)
+        
+        
+        optionsrow+=1
+        Tk.Label(optionsFrame,text=" ").grid(row=optionsrow) #blank space
 #--------frame for atom selections---------  
         
         optionsrow+=1
@@ -248,6 +297,38 @@ class TetrDialog(ModelessDialog):
         # Get a callback when return key is pressed
 
         self.entry.bind('<Key-Return>', self._updateInput)
+    
+    
+    def unfinished(self,e=None):
+        print("Nothing to see here... yet")
+        
+    def SwitchTetrView(self,e=0):
+        if self.tetrDispOption.get() == 0: #latest output
+            text = self.prevtext
+            self.displayText(text)
+            self.toption=0
+        else:
+            text= self.fulltext
+            self.toption=1
+            self.displayText(text)
+        
+    #replaces text in the tetr console/terminal with "text"
+    def displayText(self,text):
+        self.outText.config(state = Tk.NORMAL) #allow modification of the text
+        self.outText.delete(1.0,Tk.END)
+        self.outText.insert(Tk.END, text)
+        self.outText.config(state = Tk.DISABLED) #disable modification of the text
+        self.outText.see(Tk.END)
+
+    
+    
+    def UpdateLabels(self,e=None):
+        num=self.showNumber.get()
+        spec=self.showAtom.get()
+        print("Atom Number=",num)
+        print("Atom Species=",spec)
+        self.tetr.UpdateLabels(num,spec)
+        
         
     
     #gives focus to the entry widget
@@ -322,6 +403,7 @@ class TetrDialog(ModelessDialog):
             tkMessageBox.showerror("Error","The tetr process has ended (user-exited or crashed). Please restart tetr via the 'Restart' button.")
             return
         #self._updateText(inString + "\n")
+        self.fulltext+=inString+"\n"
         self.tetrInput.set("")
         
         time.sleep(pausetime) #wait for tetr to do its thing
@@ -330,21 +412,27 @@ class TetrDialog(ModelessDialog):
         except IOError:
             tkMessageBox.showerror("Error","The tetr process has ended (user-exited or crashed). Please restart tetr via the 'Restart' button.")
             return
-        self._updateText(outputText) #update tetr output text
+        self.updateText(outputText) #update tetr output text
         self.tetr.refreshGeom() #update model in chimera
+        self.UpdateLabels() #re-apply labels if they are on
         
 
     #def _processTetrOutput(self, text):
         #for line in iter(text.readline, b''):
             #pass
 
-    def _updateText(self, text):
-        self.outText.config(state = Tk.NORMAL) #allow modification of the text
-        self.outText.delete(1.0,Tk.END) #this line clears any previous text - comment out to append new test instead
-        self.outText.insert(Tk.END, text)
-        self.outText.config(state = Tk.DISABLED) #disable modification of the text
-        self.outText.see(Tk.END)
-
+    def updateText(self, text):
+        self.fulltext+=text
+        self.prevtext=text
+       
+        if self.toption==0:
+            self.displayText(self.prevtext)
+        else:
+            self.displayText(self.fulltext)
+        
+    
+        
+        
     #Create the axis file to be displayed in Chimera
     def make_axis(self):
         axisfile=self.tetrdir+"/axis.bild"
@@ -535,14 +623,17 @@ class TetrDialog(ModelessDialog):
         if answer == "yes":
             self.tetr.CloseModels()
             self.tetr = None
-            self._updateText("Tetr starting...")
+            self.fulltext=""
+            self.updateText("Tetr starting...\n")
             self.getWorkingDir()
             self.tetr = Tetr.Tetr(self.rootdir,self.wkdir)
             time.sleep(pausetime)
-            self._updateText(self.tetr.getOutput())
+            self.updateText(self.tetr.getOutput())
             self.tetr.refreshGeom()
             self.SetViewOption()
             self.axis_toggle()
+            self.wdirlabel.config(text="wkdir= '"+self.wkdir+"'")
+            
     
     #produces a dialogue that offers help on the reset button
     def resetHelp(self):

@@ -172,6 +172,16 @@ class Tetr():
                 atom.drawMode=atomMode
             for bond in chimera.misc.bonds(self.model.atoms, internal=True):
                 bond.drawMode = bondMode
+                
+    def UpdateLabels(self,num,species):
+        if self.model != None:
+            for atom in self.model.atoms:
+                label=""
+                if species == 1:
+                    label+=atom.element.name
+                if num == 1:
+                    label+=str(atom.coordIndex +1)
+                atom.label=label
         
         
     def ShowAxis(self,toggle):
