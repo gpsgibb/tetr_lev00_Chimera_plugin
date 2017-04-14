@@ -633,6 +633,7 @@ class TetrDialog(ModelessDialog):
             self.SetViewOption()
             self.axis_toggle()
             self.wdirlabel.config(text="wkdir= '"+self.wkdir+"'")
+            self.UpdateLabels()
             
     
     #produces a dialogue that offers help on the reset button
