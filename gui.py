@@ -17,53 +17,12 @@ from chimera.baseDialog import ModelessDialog
 
 pausetime=0.5 #time to wait between submitting a Tetr command and checking for output/refreshing the text (seconds)
 
-class TetrDialog(ModelessDialog):
-    name = "tetr ui"
-    buttons = ("Close")
-    title = "Enter Tetr Commands"
 
-    def __init__(self, sessionData=None, *args, **kw):
-        self.fulltext=""
-        self.toption=0
-        ModelessDialog.__init__(self, *args, **kw)
-        print "In init"
+
+
         
-        self.home=os.path.expanduser("~")
-        self.tetrdir=self.home+"/.Tetr"
-        
-        #check for ~/.Tetr. If it doesn't exist, create it
-        if not (os.path.isdir(self.tetrdir)):
-            print "Making ",self.tetrdir
-            os.mkdir(self.tetrdir)
-        
-        #Look for the tetr root directory. Prompt user if necessary
-        self.getTetrDir()
-        
-        #Ask user to select the working directory
-        self.getWorkingDir()
-        
-        # Create tetr process
-        self.tetr = Tetr.Tetr(self.rootdir,self.wkdir)
-        
-        self.wdirlabel.config(text="wkdir= '"+self.wkdir+"'")
-        
-        # Create variable to store Tetr output
-        self.tetrOutput = Tk.StringVar()
-        
-        time.sleep(pausetime)
-        
-        
-        
-        #Update the tetr text on screen
-        self.updateText(self.tetr.getOutput())
-        
-        #load 'geom.xyz'
-        self.tetr.refreshGeom()
-        
-        #set view options to those selected in the GUI
-        self.SetViewOption()
-        
-        
+#abstract class containing code common to the Tetr and Lev00        
+class LevGUI(ModelessDialog):
 
     def fillInUI(self, parent):
         self.parent=parent
@@ -112,9 +71,33 @@ class TetrDialog(ModelessDialog):
                    add = True)
 
         # set the initial text
-        self.updateText("Tetr starting...\n")
+        self.updateText(self.App+" starting...\n")
         
         
+
+        
+#################### Tetr text entry widget (bottom of screen) #####################
+
+        #entry widget at the bottom left
+        Tk.Label(parent, text="Tetr Input:").grid(row=row, sticky=Tk.W,padx=5)
+        row += 1
+        self.entry = Tk.Entry(parent)
+        self.entry.config(relief=Tk.SUNKEN,font=('courier', 12, 'normal'))
+        self.entry.grid(row=row,column=0, sticky=Tk.W+Tk.E,columnspan=1,padx=5)
+        
+        #enter button at bottom right
+        Tk.Button(parent,text="<- Enter Command",command=self._updateInput).grid(row=row,column=1, sticky=Tk.W+Tk.E,padx=5)
+        
+        # Tell the entry widget to watch the input
+        self.tetrInput = Tk.StringVar()
+        self.entry["textvariable"] = self.tetrInput
+        self.entry.focus_set()
+
+        # Get a callback when return key is pressed
+
+        self.entry.bind('<Key-Return>', self._updateInput)
+    
+    
 #################### Create options frame (RHS of window) #####################
         
         optionsFrame=Tk.Frame(parent)
@@ -181,7 +164,7 @@ class TetrDialog(ModelessDialog):
         
         axisRow+=1
         self.axisshow=Tk.IntVar()
-        Tk.Checkbutton(axisFrame,text="Show Axis",variable=self.axisshow,command=self.axis_toggle).grid(row=axisRow,columnspan=2,sticky=Tk.W)
+        Tk.Checkbutton(axisFrame,text="Toggle Axis",variable=self.axisshow,command=self.axis_toggle).grid(row=axisRow,columnspan=2,sticky=Tk.W)
         
         axisRow+=1
         Tk.Label(axisFrame,text="x-coord:").grid(row=axisRow,column=0,sticky=Tk.E)
@@ -212,6 +195,10 @@ class TetrDialog(ModelessDialog):
         
         Tk.Button(axisFrame,text="Reset",command=self.reset_axis).grid(row=axisRow,sticky=Tk.W+Tk.E,column=1)
         
+        axisRow +=1
+        self.lattice=Tk.IntVar()
+        Tk.Checkbutton(axisFrame,text="Toggle Lattice Vectors",variable=self.lattice,command=self.ToggleLatticeVectors).grid(row=axisRow,sticky=Tk.W,columnspan=2)
+        
         optionsrow +=1
         
         Tk.Label(optionsFrame,text=" ").grid(row=optionsrow) #blank space
@@ -223,7 +210,7 @@ class TetrDialog(ModelessDialog):
         toptFrame=Tk.Frame(optionsFrame,relief=Tk.GROOVE,borderwidth=1)
         toptFrame.grid(row=optionsrow,sticky=Tk.W+Tk.E)
         
-        Tk.Label(toptFrame,text="Tetr console:").grid(row=0,sticky=Tk.W)
+        Tk.Label(toptFrame,text=self.App+" console:").grid(row=0,sticky=Tk.W)
         
         tetroptions = [
             ("Latest output",0),
@@ -246,21 +233,22 @@ class TetrDialog(ModelessDialog):
         Tk.Label(optionsFrame,text=" ").grid(row=optionsrow) #blank space
 #--------frame for atom selections---------  
         
-        optionsrow+=1
-        
-        #get selected atoms
-        
-        selectionFrame=Tk.Frame(optionsFrame,relief=Tk.GROOVE,borderwidth=1)
-        selectionFrame.grid(row=optionsrow,sticky=Tk.W+Tk.E)
-        
-        Tk.Label(selectionFrame,text="Atom Selection:").grid(row=0,columnspan=2,sticky=Tk.W)
-        Tk.Button(selectionFrame,text="Get Selection",command=self.GetSelection).grid(row=1,column=0, sticky=Tk.W+Tk.E)
-        Tk.Button(selectionFrame,text="?",command=self.selectionHelp).grid(row=1,column=1, sticky=Tk.W+Tk.E)
-        
-        
-        optionsrow +=1
-        
-        Tk.Label(optionsFrame,text=" ").grid(row=optionsrow)
+        if self.App=="Tetr":
+            optionsrow+=1
+            
+            #get selected atoms
+            
+            selectionFrame=Tk.Frame(optionsFrame,relief=Tk.GROOVE,borderwidth=1)
+            selectionFrame.grid(row=optionsrow,sticky=Tk.W+Tk.E)
+            
+            Tk.Label(selectionFrame,text="Atom Selection:").grid(row=0,columnspan=2,sticky=Tk.W)
+            Tk.Button(selectionFrame,text="Get Selection",command=self.GetSelection).grid(row=1,column=0, sticky=Tk.W+Tk.E)
+            Tk.Button(selectionFrame,text="?",command=self.selectionHelp).grid(row=1,column=1, sticky=Tk.W+Tk.E)
+            
+            
+            optionsrow +=1
+            
+            Tk.Label(optionsFrame,text=" ").grid(row=optionsrow)
         
 #--------frame for reset controls---------
         
@@ -270,37 +258,66 @@ class TetrDialog(ModelessDialog):
         resetFrame.grid(row=optionsrow,sticky=Tk.W+Tk.E)
         
         
-        Tk.Label(resetFrame,text="Restart Tetr:").grid(row=0,column=0,columnspan=2,sticky=Tk.W)
+        Tk.Label(resetFrame,text="Restart "+self.App+":").grid(row=0,column=0,columnspan=2,sticky=Tk.W)
         Tk.Button(resetFrame,text="Restart",command=self.reset_tetr).grid(row=1,column=0,sticky=Tk.W+Tk.E)
         Tk.Button(resetFrame,text="?",command=self.resetHelp).grid(row=1,column=1, sticky=Tk.W+Tk.E)
         resetFrame.columnconfigure(0,weight=1)
         resetFrame.columnconfigure(1,weight=1)
         
-        
-#################### Tetr text entry widget (bottom of screen) #####################
-
-        #entry widget at the bottom left
-        Tk.Label(parent, text="Tetr Input:").grid(row=row, sticky=Tk.W,padx=5)
-        row += 1
-        self.entry = Tk.Entry(parent)
-        self.entry.config(relief=Tk.SUNKEN,font=('courier', 12, 'normal'))
-        self.entry.grid(row=row,column=0, sticky=Tk.W+Tk.E,columnspan=1,padx=5)
-        
-        #enter button at bottom right
-        Tk.Button(parent,text="<- Enter Command",command=self._updateInput).grid(row=row,column=1, sticky=Tk.W+Tk.E,padx=5)
-        
-        # Tell the entry widget to watch the input
-        self.tetrInput = Tk.StringVar()
-        self.entry["textvariable"] = self.tetrInput
-        self.entry.focus_set()
-
-        # Get a callback when return key is pressed
-
-        self.entry.bind('<Key-Return>', self._updateInput)
-    
-    
+   
+   
+   
+   
+   
+   
+   
     def unfinished(self,e=None):
         print("Nothing to see here... yet")
+        
+    def ToggleLatticeVectors(self,e=None):
+        if self.lattice.get() == 1:
+            filename=self.wkdir+"/vectors.vct"
+            f=open(filename,"r")
+            
+            nvec=int(f.readline())
+            vectors=[]
+            for i in range(nvec):
+                line=f.readline()
+                entries=line.split()
+                vect=[]
+                for entry in entries:
+                    num=float(entry)
+                    print(entry,num)
+                    vect.append(num)
+                vectors.append(vect)
+
+            f.close()
+            
+            f=open(self.tetrdir+"/lattice.bild","w")
+            
+            v=vectors[0]
+            f.write(".color 0 1 1\n")
+            f.write(".arrow 0.0 0.0 0.0 "+str(v[0])+" "+str(v[1])+" "+str(v[2])+'\n')
+
+            v=vectors[1]
+            f.write(".color 1 1 0\n")
+            f.write(".arrow 0.0 0.0 0.0 "+str(v[0])+" "+str(v[1])+" "+str(v[2])+'\n')
+            
+            try:
+                v=vectors[2]
+                f.write(".color 1 0 1\n")
+                f.write(".arrow 0.0 0.0 0.0 "+str(v[0])+" "+str(v[1])+" "+str(v[2])+'\n')
+            except:
+                pass
+            
+            f.close()
+            
+            print("Lattice vectors written to file")
+            
+            self.tetr.ShowLattice(True)
+            
+        else:
+            self.tetr.ShowLattice(False)
         
     def SwitchTetrView(self,e=0):
         if self.tetrDispOption.get() == 0: #latest output
@@ -463,15 +480,19 @@ class TetrDialog(ModelessDialog):
         print "Opening ",axisfile
         f=open(axisfile,"w")
         #f.write(".sphere "+str(xs)+" "+str(ys)+" "+str(zs)+" "+str(0.5)+"\n") #uncomment to display ball in axis
-        
+        f.write(".font SERIF 50 bold\n")
         f.write(".color 1 0 0\n")
         f.write(".arrow "+str(xs)+" "+str(ys)+" "+str(zs)+" "+str(ls+xs)+" "+str(ys)+" "+str(zs)+"\n")
+        f.write(".cmov "+str(ls)+ " 0.0 0.0\nx\n")
+
         
         f.write(".color 0 1 0\n")
         f.write(".arrow "+str(xs)+" "+str(ys)+" "+str(zs)+" "+str(xs)+" "+str(ls+ys)+" "+str(zs)+"\n")
+        f.write(".cmov 0.0 "+str(ls)+ " 0.0\ny\n")
         
         f.write(".color 0 0 1\n")
         f.write(".arrow "+str(xs)+" "+str(ys)+" "+str(zs)+" "+str(xs)+" "+str(ys)+" "+str(ls+zs)+"\n")
+        f.write(".cmov 0.0 0.0 "+str(ls)+ "\nz\n")
         
         f.close()
         
@@ -512,43 +533,46 @@ class TetrDialog(ModelessDialog):
             
     #try to find the tetr root directory. If not, ask the user to give it        
     def getTetrDir(self):
-        
-        #check for HOME_TETR environment variable
-        home_tetr=os.environ.get("HOME_TETR")
-        
-        if home_tetr != None:
-            print "$HOME_TETR defined as: ",home_tetr
-            if os.path.isfile(home_tetr+"/tetr"):
-                print "$HOME_TETR/tetr exists! Using it"
-                self.rootdir=home_tetr
-                return
+        if self.App=="Tetr":
+            #check for HOME_TETR environment variable
+            home_tetr=os.environ.get("HOME_TETR")
+            
+            if home_tetr != None:
+                print "$HOME_TETR defined as: ",home_tetr
+                if os.path.isfile(home_tetr+"/tetr"):
+                    print "$HOME_TETR/tetr exists! Using it"
+                    self.rootdir=home_tetr
+                    return
+                else:
+                    print "$HOME_TETR/tetr does not exist"
             else:
-                print "$HOME_TETR/tetr does not exist"
-        else:
-            print "$HOME_TETR not defined in enviroment"
+                print "$HOME_TETR not defined in enviroment"
         
         
         
          # if the tetr root file exists, use the path in it, else prompt the user
-        tetrfile=self.tetrdir+"/tetr_root.dat"
+        tetrfile=self.tetrdir+"/"+self.App.lower()+"_root.dat"
+        print("tetrfile=",tetrfile)
         if not os.path.isfile(tetrfile):
+            print("not a file")
             self.SetTetrRoot()
         else:
             f=open(tetrfile)
             rootdir=f.read()
             f.close()
-            if os.path.isfile(rootdir+"/tetr"):
+            if os.path.isfile(rootdir+"/"+self.App.lower()):
                 self.rootdir=rootdir
             else:
+               print("can't find exec")
                self.SetTetrRoot()
         
         
-        print "Tetr Root directory=",self.rootdir
+        print self.App+" Root directory=",self.rootdir
         
     #prompt the user to provide the tetr directory
     def SetTetrRoot(self):
         self.rootdirwin=Tk.Toplevel(self.parent)
-        Tk.Label(self.rootdirwin,text="Please provide the path to the tetr executable\n(You should only have to do this once)").grid(row=0,column=0)
+        Tk.Label(self.rootdirwin,text="Please provide the path to the "+self.App+" executable\n(You should only have to do this once)").grid(row=0,column=0)
         Tk.Button(self.rootdirwin,text="Choose path",command=self.chooseTetrRoot).grid(row=1,column=0)
         
         self.rootdirwin.transient(self.parent)
@@ -557,13 +581,13 @@ class TetrDialog(ModelessDialog):
    
     #selection window for tetr root. Checks if tetr executable exists in that location 
     def chooseTetrRoot(self):
-        self.rootdir=tkFileDialog.askdirectory(title="Please select the path to tetr")
+        self.rootdir=tkFileDialog.askdirectory(title="Please select the path to "+self.App)
         
-        while not os.path.isfile(self.rootdir+"/tetr"):
-            tkMessageBox.showwarning("Warning","Cannot find tetr in:\n'"+self.rootdir+"'\nPlease try again")
-            self.rootdir=tkFileDialog.askdirectory(title="Please select the path to tetr")
+        while not os.path.isfile(self.rootdir+"/"+self.App.lower()):
+            tkMessageBox.showwarning("Warning","Cannot find "+self.App+" in:\n'"+self.rootdir+"'\nPlease try again")
+            self.rootdir=tkFileDialog.askdirectory(title="Please select the path to "+self.App)
             
-        f=open(self.tetrdir+"/tetr_root.dat","w")
+        f=open(self.tetrdir+"/"+self.App.lower()+"_root.dat","w")
         f.write(self.rootdir)
         f.close()
         self.rootdirwin.destroy()
@@ -604,7 +628,7 @@ class TetrDialog(ModelessDialog):
         
     #sets the tetr working directory to a user selected one    
     def UseNewPath(self):
-        self.wkdir=tkFileDialog.askdirectory(title="Please Choose Tetr's working directory")
+        self.wkdir=tkFileDialog.askdirectory(title="Please Choose "+self.App+"'s working directory")
         dirfile = self.tetrdir+"/wkdir.dat"
         f=open(dirfile,"w")
         f.write(self.wkdir)
@@ -619,33 +643,175 @@ class TetrDialog(ModelessDialog):
     
     #kills the tetr process and starts a new one
     def reset_tetr(self):
-        answer = tkMessageBox.askquestion("Resetting Tetr", "Are you sure you want to proceed? \nAny unsaved work will be lost")
+        answer = tkMessageBox.askquestion("Resetting "+self.App, "Are you sure you want to proceed? \nAny unsaved work will be lost")
         if answer == "yes":
             self.tetr.CloseModels()
             self.tetr = None
             self.fulltext=""
-            self.updateText("Tetr starting...\n")
+            self.updateText(self.App+" starting...\n")
             self.getWorkingDir()
-            self.tetr = Tetr.Tetr(self.rootdir,self.wkdir)
+            if self.App=="Tetr":
+                self.tetr = Tetr.Tetr(self.rootdir,self.wkdir)
+            else:
+                self.tetr = Tetr.Lev00(self.rootdir,self.wkdir)
             time.sleep(pausetime)
             self.updateText(self.tetr.getOutput())
             self.tetr.refreshGeom()
             self.SetViewOption()
             self.axis_toggle()
+            self.ToggleLatticeVectors()
             self.wdirlabel.config(text="wkdir= '"+self.wkdir+"'")
             self.UpdateLabels()
             
     
     #produces a dialogue that offers help on the reset button
     def resetHelp(self):
-            tkMessageBox.showinfo("Resetting Tetr","This command resets Tetr by closing and re-opening Tetr. Any unsaved progress will be lost")
+            tkMessageBox.showinfo("Resetting "+self.App,"This command resets "+self.App+" by closing and re-opening "+self.App+". Any unsaved progress will be lost")
             
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+class TetrDialog(LevGUI):
+    name = "tetr ui"
+    buttons = ("Close")
+    title = "Enter Tetr Commands"
 
-chimera.dialogs.register(TetrDialog.name, TetrDialog)
-
-dir, file = os.path.split(__file__)
-icon = os.path.join(dir, 'ExtensionUI.tiff')
-chimera.tkgui.app.toolbar.add(icon,
+    def __init__(self, sessionData=None, *args, **kw):
+        dir, file = os.path.split(__file__)
+        icon = os.path.join(dir, 'TetrLogo.tiff')
+        chimera.tkgui.app.toolbar.add(icon,
                               lambda d=chimera.dialogs.display,
                               n=TetrDialog.name: d(n),
                               'Run Tetr', None)
+        self.App="Tetr"
+        self.fulltext=""
+        self.toption=0
+        ModelessDialog.__init__(self, *args, **kw)
+        print "In init"
+        
+        self.home=os.path.expanduser("~")
+        self.tetrdir=self.home+"/.Tetr"
+        
+        #check for ~/.Tetr. If it doesn't exist, create it
+        if not (os.path.isdir(self.tetrdir)):
+            print "Making ",self.tetrdir
+            os.mkdir(self.tetrdir)
+        
+        #Look for the tetr root directory. Prompt user if necessary
+        self.getTetrDir()
+        
+        #Ask user to select the working directory
+        self.getWorkingDir()
+        
+        # Create tetr process
+        self.tetr = Tetr.Tetr(self.rootdir,self.wkdir)
+        
+        self.wdirlabel.config(text="wkdir= '"+self.wkdir+"'")
+        
+        # Create variable to store Tetr output
+        self.tetrOutput = Tk.StringVar()
+        
+        time.sleep(pausetime)
+        
+        
+        
+        #Update the tetr text on screen
+        self.updateText(self.tetr.getOutput())
+        
+        #load 'geom.xyz'
+        self.tetr.refreshGeom()
+        
+        #set view options to those selected in the GUI
+        self.SetViewOption()
+        
+    def fillInUI(self,parent):
+        LevGUI.fillInUI(self,parent)
+        
+        
+        
+        
+            
+            
+            
+            
+class Lev00Dialog(LevGUI):
+    name="lev00 ui"
+    buttons=("Close")
+    title="Enter Lev00 Commands"
+    
+    def __init__(self,sessionData=None, *args, **kw):
+        
+        
+        dir, file = os.path.split(__file__)
+        icon = os.path.join(dir, 'Lev00Logo.tiff')
+        chimera.tkgui.app.toolbar.add(icon,
+                              lambda d=chimera.dialogs.display,
+                              n=Lev00Dialog.name: d(n),
+                              'Run Tetr', None)
+        
+        
+        self.App="Lev00"
+        self.fulltext=""
+        self.toption=0
+        ModelessDialog.__init__(self, *args, **kw)
+        print "In init"
+        
+        self.home=os.path.expanduser("~")
+        self.tetrdir=self.home+"/."+self.App
+        
+        #check for ~/.Tetr. If it doesn't exist, create it
+        if not (os.path.isdir(self.tetrdir)):
+            print "Making ",self.tetrdir
+            os.mkdir(self.tetrdir)
+        
+        #Look for the tetr root directory. Prompt user if necessary
+        self.getTetrDir()
+        #self.rootdir="/Users/ggibb2/Projects/CP2k/lev00_3.49"
+        
+        #Ask user to select the working directory
+        self.getWorkingDir()
+        
+        # Create tetr process
+        self.tetr = Tetr.Lev00(self.rootdir,self.wkdir)
+        
+        self.wdirlabel.config(text="wkdir= '"+self.wkdir+"'")
+        
+        # Create variable to store Tetr output
+        self.tetrOutput = Tk.StringVar()
+        
+        time.sleep(pausetime)
+        
+        #Update the tetr text on screen
+        self.updateText(self.tetr.getOutput())
+        
+        #load 'geom.xyz'
+        self.tetr.refreshGeom()
+        
+        #set view options to those selected in the GUI
+        self.SetViewOption()
+        
+        
+    def fillInUI(self,parent):
+        LevGUI.fillInUI(self,parent)
+            
+            
+            
+            
+
+chimera.dialogs.register(TetrDialog.name, TetrDialog)
+chimera.dialogs.register(Lev00Dialog.name,Lev00Dialog)
+
+

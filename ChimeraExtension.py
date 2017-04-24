@@ -18,7 +18,7 @@ class TetrEMO(chimera.extension.EMO):
         return ['Utilities']
 
     def icon(self):
-        return self.path('ExtensionUI.tiff')
+        return self.path('TetrLogo.tiff')
 
     def activate(self):
         # Comment out if no GUI is needed
@@ -37,3 +37,37 @@ def cmdTetr(cmdName, args):
     doExtensionFunc(runTetr, args)
 
 addCommand("tetr", cmdTetr, changesDisplay=True)
+
+
+
+
+class Lev00EMO(chimera.extension.EMO):
+    def name(self):
+        return 'Lev00'
+
+    def description(self):
+        return 'Run the Lev00 utility'
+
+    def categories(self):
+        return ['Utilities']
+
+    def icon(self):
+        return self.path('Lev00Logo.tiff')
+
+    def activate(self):
+        # Comment out if no GUI is needed
+        from chimera.dialogs import display
+        display(self.module("gui").Lev00Dialog.name)
+        return None
+
+# Register
+chimera.extension.manager.registerExtension(Lev00EMO(__file__))
+
+from Midas.midas_text import addCommand
+
+def cmdTetr(cmdName, args):
+    from Tetr import runTetr
+    from Midas.midas_text import doExtensionFunc
+    doExtensionFunc(runTetr, args)
+
+addCommand("lev00", cmdTetr, changesDisplay=True)

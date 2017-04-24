@@ -20,9 +20,11 @@ ROOT_DIR='/Users/ggibb2/Projects/CP2K/tetr_4.97'
 home=os.path.expanduser("~")
 tetrdir=home+"/.Tetr"
 axisfile=tetrdir+"/axis.bild"
+latticefile=tetrdir+"/lattice.bild"
 
 modelno = 5 #model number
 axisno = 600 #axis number
+latticeno=700
 file='geom.xyz' #file to be opened
 
 
@@ -30,38 +32,85 @@ def enqueue_output(out, queue):
     for line in iter(out.readline, b''):
         queue.put(line)
     out.close()
+    
+    
+def parse_list(list):
+    #Takes a list of numbers and formats a string to present the list so that:
+    # 1,2,3,4,5,8,10,15,16,17
+    # becomes
+    # 1-5 8 10 15-17
 
-class Tetr():
+    # It compares the ith element to (i-1)th element in list. If they are contiguous 
+    # (i.e. 11 and 12) then it skips to the next element pair. If not,
+    # it prints the last contiguous range
+    
+    #sort the incoming list
+    list.sort() 
+
+    #string to put the range into
+    string="" 
+
+    #start value of initial contiguous range (first element of list)
+    start=list[0]
+
+    #number of elements in list
+    end=len(list)
+
+    #loop over every element in list (also include an extra iteration at the end as it
+    # prints out the i-1th element, so need to go to end+1 to include the last element)
+    for i in range(len(list)+1):
+        
+        #skip first element as cannot compare 0th and -1th elements
+        if i==0:
+            continue
+        
+        #calculate difference in ith and (i-1)th element
+        if i!= end:
+            diff=list[i]-list[i-1]
+        else:
+            diff=-1
+        
+        #if the difference is not one (they are NOT contiguous)
+        if diff != 1:
+            
+            #the previous contiguous set ends at the (i-1)th element
+            stop=list[i-1]
+            
+            #print out the previous contiguous chunk
+            if (stop == start): #only a single number in this range
+                string = string + str(start) + " "
+            else: #prints out range in form start-stop
+                string=string+str(start)+"-"+str(stop)+" "
+            
+            #define start value of new contiguous range
+            if i!= end:
+                start=list[i]
+        
+    return string
+
+
+class LevApp():
     def __init__(self,rootdir=ROOT_DIR,wkdir=WORKING_DIR):
-        print("INITIALISING TETR")
-        print(wkdir)
-        print(rootdir)
-        self.wkdir=wkdir
-        self.tetrProc = subprocess.Popen([rootdir+"/tetr","CHIMERA=.true."],
-                                         stdin=subprocess.PIPE,
-                                         stdout=subprocess.PIPE,
-                                         stderr=subprocess.STDOUT,
-                                         shell=False,
-                                         universal_newlines=True,
-                                         cwd=wkdir,
-                                         env=dict(os.environ, HOME_TETR=rootdir))
-        print("tetr started")
-        self.IsOpen=False
-        print(self.tetrProc)
-        self.outQueue = Queue.Queue()
-
-        outThread = Thread(target=enqueue_output,
-                           args=(self.tetrProc.stdout, self.outQueue))
-        outThread.daemon = True
-        outThread.start()
-        print("outThread started")
-        print(self.tetrProc)
+        
         self.geomProp = None
         self.model=None #will contain a reference to the model object in chimera
         self.oldmodel=None #will contain the previous model opened (retain it so its view settings can be copied to the new model)
         self.om=chimera.openModels #object containing information on open models
         self.style=0 #default starting style
         self.axis=None
+        self.lattice=None
+        self.wkdir=wkdir
+        
+       
+        self.IsOpen=False
+        
+        self.outQueue = Queue.Queue()
+        self.outThread = Thread(target=enqueue_output,
+                           args=(self.Proc.stdout, self.outQueue))
+        self.outThread.daemon = True
+        self.outThread.start()
+       
+        
 
 
     def getOutput(self):
@@ -80,7 +129,7 @@ class Tetr():
         print("setInput")
         print(inStr)
         print("LENGTH OF INPUTTED STRING=",len(inStr))
-        self.tetrProc.stdin.write(inStr + "\n")
+        self.Proc.stdin.write(inStr + "\n")
 
                 
     def refreshGeom(self): #reloads the model (if the file has changed)
@@ -196,6 +245,19 @@ class Tetr():
                 self.om.close(self.axis)
             self.om.open(axisfile,baseId=axisno)
             self.axis=self.getModel(axisno)
+            
+    def ShowLattice(self,toggle):
+        if toggle==False:
+            print("Lattice Off")
+            if self.lattice!=None:
+                self.om.close(self.lattice)
+                self.lattice=None
+        else:
+            print("Lattice on")
+            if self.lattice != None:
+                self.om.close(self.lattice)
+            self.om.open(latticefile,baseId=latticeno)
+            self.lattice=self.getModel(latticeno)
     
     
     def CloseModels(self):
@@ -203,64 +265,52 @@ class Tetr():
             self.om.close(self.model)
         if self.axis != None:
             self.om.close(self.axis)
+        if self.lattice != None:
+            self.om.close(self.lattice)
 
     
     def _getGeomPath(self):
         return os.path.join(self.wkdir, file)
 
 
-def parse_list(list):
-    #Takes a list of numbers and formats a string to present the list so that:
-    # 1,2,3,4,5,8,10,15,16,17
-    # becomes
-    # 1-5 8 10 15-17
-
-    # It compares the ith element to (i-1)th element in list. If they are contiguous 
-    # (i.e. 11 and 12) then it skips to the next element pair. If not,
-    # it prints the last contiguous range
-    
-    #sort the incoming list
-    list.sort() 
-
-    #string to put the range into
-    string="" 
-
-    #start value of initial contiguous range (first element of list)
-    start=list[0]
-
-    #number of elements in list
-    end=len(list)
-
-    #loop over every element in list (also include an extra iteration at the end as it
-    # prints out the i-1th element, so need to go to end+1 to include the last element)
-    for i in range(len(list)+1):
+class Tetr(LevApp):
+    def __init__(self,rootdir,wkdir):
         
-        #skip first element as cannot compare 0th and -1th elements
-        if i==0:
-            continue
+        print("INITIALISING TETR")
+       
         
-        #calculate difference in ith and (i-1)th element
-        if i!= end:
-            diff=list[i]-list[i-1]
-        else:
-            diff=-1
+        self.Proc = subprocess.Popen([rootdir+"/tetr","CHIMERA=.true."],
+                                         stdin=subprocess.PIPE,
+                                         stdout=subprocess.PIPE,
+                                         stderr=subprocess.STDOUT,
+                                         shell=False,
+                                         universal_newlines=True,
+                                         cwd=wkdir,
+                                         env=dict(os.environ, HOME_TETR=rootdir))
         
-        #if the difference is not one (they are NOT contiguous)
-        if diff != 1:
-            
-            #the previous contiguous set ends at the (i-1)th element
-            stop=list[i-1]
-            
-            #print out the previous contiguous chunk
-            if (stop == start): #only a single number in this range
-                string = string + str(start) + " "
-            else: #prints out range in form start-stop
-                string=string+str(start)+"-"+str(stop)+" "
-            
-            #define start value of new contiguous range
-            if i!= end:
-                start=list[i]
+        LevApp.__init__(self,rootdir,wkdir)
         
-    return string
-
+        
+        
+        
+        
+        
+        
+class Lev00(LevApp):
+    def __init__(self,rootdir,wkdir):
+        
+        print("INITIALISING Lev00")
+       
+        
+        self.Proc = subprocess.Popen([rootdir+"/lev00","CHIMERA=.true."],
+                                         stdin=subprocess.PIPE,
+                                         stdout=subprocess.PIPE,
+                                         stderr=subprocess.STDOUT,
+                                         shell=False,
+                                         universal_newlines=True,
+                                         cwd=wkdir,
+                                         env=dict(os.environ))
+        
+        LevApp.__init__(self,rootdir,wkdir)
+        
 
