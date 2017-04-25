@@ -18,9 +18,9 @@ WORKING_DIR= '/Users/ggibb2/Projects/CP2K/tetr_4.97'
 ROOT_DIR='/Users/ggibb2/Projects/CP2K/tetr_4.97'
 
 home=os.path.expanduser("~")
-tetrdir=home+"/.Tetr"
-axisfile=tetrdir+"/axis.bild"
-latticefile=tetrdir+"/lattice.bild"
+#tetrdir=home+"/.Tetr"
+#axisfile=tetrdir+"/axis.bild"
+#latticefile=tetrdir+"/lattice.bild"
 
 modelno = 5 #model number
 axisno = 600 #axis number
@@ -170,7 +170,7 @@ class LevApp():
         self.UpdateView()
         
                 
-    def getModel(self,number): #obtains the tetr model object (model number modelno)
+    def getModel(self,number): #obtains the .xyz model object (model number modelno)
         modlist = self.om.list() #get list of models
         modlist.reverse() #reverses the order of modlist (as the newer model is appended after the previous model)
         for model in modlist:
@@ -243,7 +243,7 @@ class LevApp():
             print("Axis on")
             if self.axis != None:
                 self.om.close(self.axis)
-            self.om.open(axisfile,baseId=axisno)
+            self.om.open(self.axisfile,baseId=axisno)
             self.axis=self.getModel(axisno)
             
     def ShowLattice(self,toggle):
@@ -256,7 +256,7 @@ class LevApp():
             print("Lattice on")
             if self.lattice != None:
                 self.om.close(self.lattice)
-            self.om.open(latticefile,baseId=latticeno)
+            self.om.open(self.latticefile,baseId=latticeno)
             self.lattice=self.getModel(latticeno)
     
     
@@ -288,6 +288,10 @@ class Tetr(LevApp):
                                          cwd=wkdir,
                                          env=dict(os.environ, HOME_TETR=rootdir))
         
+        tetrdir=home+"/.Tetr"
+        self.axisfile=tetrdir+"/axis.bild"
+        self.latticefile=tetrdir+"/lattice.bild"
+        
         LevApp.__init__(self,rootdir,wkdir)
         
         
@@ -310,6 +314,10 @@ class Lev00(LevApp):
                                          universal_newlines=True,
                                          cwd=wkdir,
                                          env=dict(os.environ))
+        
+        lev00dir=home+"/.Lev00"
+        self.axisfile=lev00dir+"/axis.bild"
+        self.latticefile=lev00dir+"/lattice.bild"
         
         LevApp.__init__(self,rootdir,wkdir)
         
