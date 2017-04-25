@@ -564,7 +564,7 @@ class LevGUI(ModelessDialog):
         
         print self.App+" Root directory=",self.rootdir
         
-    #prompt the user to provide the tetr/lev00 directory
+    #prompt the user to provide the tetr/lev00 executable's directory
     def SetRoot(self):
         self.rootdirwin=Tk.Toplevel(self.parent)
         Tk.Label(self.rootdirwin,text="Please provide the path to the "+self.App+" executable\n(You should only have to do this once)").grid(row=0,column=0)
@@ -623,13 +623,15 @@ class LevGUI(ModelessDialog):
         
     #sets the working directory to a user selected one    
     def UseNewPath(self):
-        self.wkdir=tkFileDialog.askdirectory(title="Please Choose "+self.App+"'s working directory")
-        dirfile = self.appdir+"/wkdir.dat"
-        f=open(dirfile,"w")
-        f.write(self.wkdir)
-        f.close()
-        print "Working directory=",self.wkdir
-        self.wkdirwin.destroy()
+        string=tkFileDialog.askdirectory(title="Please Choose "+self.App+"'s working directory")
+        if string != "":
+            self.wkdir=string
+            dirfile = self.appdir+"/wkdir.dat"
+            f=open(dirfile,"w")
+            f.write(self.wkdir)
+            f.close()
+            print "Working directory=",self.wkdir
+            self.wkdirwin.destroy()
         
     #kill window and resets everything - currently not used    
     def Destroy(self):
