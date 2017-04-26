@@ -22,7 +22,7 @@ home=os.path.expanduser("~")
 #axisfile=tetrdir+"/axis.bild"
 #latticefile=tetrdir+"/lattice.bild"
 
-modelno = 5 #xyz number
+#modelno = 5 #xyz number
 cubeno = 500 #cube number
 axisno = 600 #axis number
 latticeno=700
@@ -165,8 +165,8 @@ class LevApp():
                     pass
             self.oldmodel=None
             
-        self.om.open(geomFile,baseId=modelno) #reads the file, associating it with model number modelno
-        self.model=self.getModel(modelno) #obtain a handle to the model
+        self.om.open(geomFile,baseId=self.modelno) #reads the file, associating it with model number self.modelno
+        self.model=self.getModel(self.modelno) #obtain a handle to the model
             
         if xf != None:
             self.model.openState.xform=xf
@@ -175,7 +175,7 @@ class LevApp():
         self.UpdateView()
         
                 
-    def getModel(self,number): #obtains the .xyz model object (model number modelno)
+    def getModel(self,number): #obtains the .xyz model object (model number self.modelno)
         modlist = self.om.list() #get list of models
         modlist.reverse() #reverses the order of modlist (as the newer model is appended after the previous model)
         for model in modlist:
@@ -304,6 +304,8 @@ class Tetr(LevApp):
         
         self.geomfile='geom.xyz' #file to be opened
         
+        self.modelno=5
+        
         LevApp.__init__(self,rootdir,wkdir)
         
         
@@ -334,6 +336,8 @@ class Lev00(LevApp):
         self.geomfile="gOpenMol.xyz"
         self.cubefile="gOpenMol.cube"
         
+        self.modelno=6
+        
         LevApp.__init__(self,rootdir,wkdir)
         
         
@@ -350,7 +354,7 @@ class Lev00(LevApp):
         cubeFile=self.getCubePath()
         
         if (os.path.isfile(cubeFile)):
-            self.om.open(cubeFile,baseId=cubeno) #reads the file, associating it with model number modelno
+            self.om.open(cubeFile,baseId=cubeno) #reads the file, associating it with model number self.modelno
             self.cube=self.getModel(cubeno) #obtain a handle to the model
         else:
             print("No cube file to open!")
