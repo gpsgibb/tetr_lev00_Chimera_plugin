@@ -22,10 +22,11 @@ home=os.path.expanduser("~")
 #axisfile=tetrdir+"/axis.bild"
 #latticefile=tetrdir+"/lattice.bild"
 
-modelno = 5 #model number
+modelno = 5 #xyz number
+cubeno = 500 #cube number
 axisno = 600 #axis number
 latticeno=700
-file='geom.xyz' #file to be opened
+
 
 
 def enqueue_output(out, queue):
@@ -93,12 +94,16 @@ class LevApp():
     def __init__(self,rootdir=ROOT_DIR,wkdir=WORKING_DIR):
         
         self.geomProp = None
+        
         self.model=None #will contain a reference to the model object in chimera
         self.oldmodel=None #will contain the previous model opened (retain it so its view settings can be copied to the new model)
         self.om=chimera.openModels #object containing information on open models
         self.style=0 #default starting style
         self.axis=None
         self.lattice=None
+        
+        self.cube= None
+        
         self.wkdir=wkdir
         
        
@@ -267,10 +272,15 @@ class LevApp():
             self.om.close(self.axis)
         if self.lattice != None:
             self.om.close(self.lattice)
+        if self.cube != None:
+            self.om.close(self.cube)
 
     
     def _getGeomPath(self):
-        return os.path.join(self.wkdir, file)
+        return os.path.join(self.wkdir, self.geomfile)
+    
+    def getCubePath(self):
+        return os.path.join(self.wkdir, self.cubefile)
 
 
 class Tetr(LevApp):
@@ -291,6 +301,8 @@ class Tetr(LevApp):
         tetrdir=home+"/.Tetr"
         self.axisfile=tetrdir+"/axis.bild"
         self.latticefile=tetrdir+"/lattice.bild"
+        
+        self.geomfile='geom.xyz' #file to be opened
         
         LevApp.__init__(self,rootdir,wkdir)
         
@@ -319,6 +331,30 @@ class Lev00(LevApp):
         self.axisfile=lev00dir+"/axis.bild"
         self.latticefile=lev00dir+"/lattice.bild"
         
+        self.geomfile="gOpenMol.xyz"
+        self.cubefile="gOpenMol.cube"
+        
         LevApp.__init__(self,rootdir,wkdir)
         
+        
+        
+    def openGeom(self):
+        #run the usual open geom
+        LevApp.openGeom(self)
+        
+        #now add bit for the cube files
+        
+        if self.cube != None:
+            self.om.close(self.cube)
+        
+        cubeFile=self.getCubePath()
+        
+        if (os.path.isfile(cubeFile)):
+            self.om.open(cubeFile,baseId=cubeno) #reads the file, associating it with model number modelno
+            self.cube=self.getModel(cubeno) #obtain a handle to the model
+        else:
+            print("No cube file to open!")
+        
+
+       
 

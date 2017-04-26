@@ -15,7 +15,7 @@ import Tetr
 import time
 from chimera.baseDialog import ModelessDialog
 
-pausetime=0.5 #time to wait between submitting a command and checking for output/refreshing the text (seconds)
+
 
 
 
@@ -421,7 +421,7 @@ class LevGUI(ModelessDialog):
         self.fulltext+=inString+"\n"
         self.consoleInput.set("")
         
-        time.sleep(pausetime) #wait for tetr/lev00 to do its thing
+        time.sleep(self.pausetime) #wait for tetr/lev00 to do its thing
         try:
             outputText = self.ChimeraInterface.getOutput()
         except IOError:
@@ -651,7 +651,7 @@ class LevGUI(ModelessDialog):
                 self.ChimeraInterface = Tetr.Tetr(self.rootdir,self.wkdir)
             else:
                 self.ChimeraInterface = Tetr.Lev00(self.rootdir,self.wkdir)
-            time.sleep(pausetime)
+            time.sleep(self.pausetime)
             self.updateText(self.ChimeraInterface.getOutput())
             self.ChimeraInterface.refreshGeom()
             self.SetViewOption()
@@ -685,8 +685,10 @@ class TetrDialog(LevGUI):
     name = "tetr ui"
     buttons = ("Close")
     title = "Enter Tetr Commands"
+    
 
     def __init__(self, sessionData=None, *args, **kw):
+        self.pausetime=0.5 #time to wait between submitting a command and checking for output/refreshing the text (seconds)
         dir, file = os.path.split(__file__)
         icon = os.path.join(dir, 'TetrLogo.tiff')
         chimera.tkgui.app.toolbar.add(icon,
@@ -721,7 +723,7 @@ class TetrDialog(LevGUI):
         # Create variable to store Tetr output
         self.ChimeraInterfaceOutput = Tk.StringVar()
         
-        time.sleep(pausetime)
+        time.sleep(self.pausetime)
         
         
         
@@ -749,8 +751,10 @@ class Lev00Dialog(LevGUI):
     buttons=("Close")
     title="Enter Lev00 Commands"
     
+    
     def __init__(self,sessionData=None, *args, **kw):
         
+        self.pausetime=1.5 #time to wait between submitting a command and checking for output/refreshing the text (seconds)
         
         dir, file = os.path.split(__file__)
         icon = os.path.join(dir, 'Lev00Logo.tiff')
@@ -789,7 +793,7 @@ class Lev00Dialog(LevGUI):
         # Create variable to store Lev00 output
         self.ChimeraInterfaceOutput = Tk.StringVar()
         
-        time.sleep(pausetime)
+        time.sleep(self.pausetime)
         
         #Update the Lev00 text on screen
         self.updateText(self.ChimeraInterface.getOutput())
