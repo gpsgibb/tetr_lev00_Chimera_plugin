@@ -275,6 +275,12 @@ class LevGUI(ModelessDialog):
     def ToggleLatticeVectors(self,e=None):
         if self.lattice.get() == 1:
             filename=self.wkdir+"/vectors.vct"
+            
+            if not os.path.isfile(filename):
+                tkMessageBox.showwarning("Warning","No lattice vectors file (vectors.vct) present.")
+                self.lattice.set(0)
+                return
+            
             f=open(filename,"r")
             
             nvec=int(f.readline())
