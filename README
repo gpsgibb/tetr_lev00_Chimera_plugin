@@ -1,5 +1,5 @@
-This is a plugin for UCSF Chimera that interfaces it with the command line 
-utility Tetr.
+This repository contains plugins for UCSF Chimera that interfaces it with the
+command line utilities Tetr and Lev00.
 
 Tetr is an interactive menu-driven program which allows the creation and 
 modification of input files for codes such as VASP, SIESTA, CASTEP etc.
@@ -7,28 +7,37 @@ This plugin allows the user to visualise the current model being constructed
 in Chimera, whilst allowing the user to select atoms using the GUI and send
 that selection into Tetr.
 
-More information on Tetr can be found at:
+Lev00 is an interactive menu-driven program for post-processing results from DFT
+codes, and produces cube files of the charge, spin total and partial densities. These
+can be visualised with Chimera.
+
+More information on Tetr and Lev00 can be found at:
 http://nms.kcl.ac.uk/lev.kantorovitch/codes/lev00/index.html
-and
+
+With manuals at
 http://nms.kcl.ac.uk/lev.kantorovitch/codes/lev00/manual_lev00_2-45c+tetr_3-94h6.html
+and
+http://nms.kcl.ac.uk/lev.kantorovitch/codes/lev00/node46.html
+
+
 
 
 INSTALLATION INSTRUCTIONS:
 
-*** Tetr only works with UNIX-based operating systems, not MS Windows ****
+*** Tetr and Lev00 only work with UNIX-based operating systems, not MS Windows ****
 
-For this plugin, you require UCSF Chimera, which can be downloaded here:
+For these plugins, you require UCSF Chimera, which can be downloaded here:
 https://www.cgl.ucsf.edu/chimera/download.html
-and Tetr, which can be downloaded here:
+and Tetr and Lev00, which can both be downloaded here:
 http://nms.kcl.ac.uk/lev.kantorovitch/codes/lev00/index.html
 
-Tetr must be compiled in order to be used. To do this, in the source directory
-of Tetr, go into the Makefile and alter the line beginning "FCOMPL=" to contain
-the Fortran compiler of your choice (e.g. gfortran, ifort etc...). Then set 
-the environment variable HOME_TETR in your shell (e.g. inside your .bashrc)
+Tetr and Lev00 must be compiled in order to be used. To do this, in the source 
+directories of each code, go into the Makefile and alter the line beginning "FCOMPL=" 
+to contain the Fortran compiler of your choice (e.g. gfortran, ifort etc...). For
+Tetr, set the environment variable HOME_TETR in your shell (e.g. inside your .bashrc)
 to point to the Tetr source directory.
 
-Finally, this directory must be placed inside the "share" directory within the
+Finally, the plugin's directory must be placed inside the "share" directory within the
 Chimera directory tree. In Linux this will be kept in:
 /path/to/UCSF_Chimera/share
 Whilst on MacOS this will be located in
@@ -36,12 +45,20 @@ Whilst on MacOS this will be located in
 
 USAGE INSTRUCTIONS
 
-Once installed (see above), the Tetr plugin should be visible in the 
+Once installed (see above), the Tetr and Lev00 plugins should be visible in the 
 Tools -> Utilities menu in the Chimera GUI.
 
-Upon its first launch, the Tetr plugin may prompt for the path to the Tetr
+Upon first launch, the plugins may prompt for the path to the Tetr/Lev00
 executable (unless the HOME_TETR environment variable is set). This will be
-cached in $HOME/.Tetr/tetr_root.dat so you should not be prompted again.
+cached in $HOME/.Tetr/tetr_root.dat and $HOME/.Lev00/lev0_root.dat so you should
+not be prompted again.
 
-The Tetr plugin will then ask you the path to the working directory you wish
+The plugins will then ask you the path to the working directory you wish
 to use.
+
+
+
+Acknowledgements:
+
+We would like to thank EPSRC for funding, grant EP/K038583/1. 
+The plugin was written by Gordon Gibb, Jeremy Nowell and Iain Bethune from EPCC (Edinburgh, U.K.). 
