@@ -43,7 +43,9 @@ Chimera directory tree. In Linux this will be kept in:
 Whilst on MacOS this will be located in
 /path/to/Chimera.app/Contents/Resources/share
 
-USAGE INSTRUCTIONS
+
+
+USAGE INSTRUCTIONS:
 
 Once installed (see above), the Tetr and Lev00 plugins should be visible in the 
 Tools -> Utilities menu in the Chimera GUI.
@@ -58,7 +60,11 @@ to use.
 
 
 
-Acknowledgements:
+PLEASE NOTE:
+If changing the version of Tetr/Lev00 that is used (e.g. upgrading to a new version) you will have to delete the tetr_root.dat and/or lev00_root.dat files in ~/.Tetr or ~/.Lev00.
+
+
+ACKNOWLEDGEMENTS:
 
 We would like to thank EPSRC for funding, grant EP/K038583/1. 
 The plugin was written by Gordon Gibb, Jeremy Nowell and Iain Bethune from EPCC (Edinburgh, U.K.). 
