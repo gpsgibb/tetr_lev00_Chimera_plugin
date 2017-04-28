@@ -26,6 +26,9 @@ class LevGUI(ModelessDialog):
 
     def fillInUI(self, parent):
         self.parent=parent
+        
+        self.timestamp=time.time()
+        
         row = 0
         
         #allow window (and things within it) to be resizable
@@ -266,7 +269,28 @@ class LevGUI(ModelessDialog):
    
    
    
-   
+    def CheckSelectionFile(self):
+        print("Checking for selection file")
+        if os.path.isfile(self.wkdir+"/tetr.slc"):
+            print("tetr.slc exists!")
+            
+            if self.timestamp < os.stat(self.wkdir+"/tetr.slc").st_mtime:
+                self.timestamp = os.stat(self.wkdir+"/tetr.slc").st_mtime
+                
+                #read file
+                f=open(self.wkdir+"/tetr.slc","r")
+
+                atoms=[]
+
+                for line in f:
+                    line=line.split()
+                    for item in line:
+                        atoms.append(int(item))
+                    
+                print(atoms)
+                #put selection into tetr
+                
+                self.ChimeraInterface.SetSelection(atoms)
    
    
     def unfinished(self,e=None):
@@ -448,6 +472,8 @@ class LevGUI(ModelessDialog):
         self.updateText(outputText) #update tetr/lev00 output text
         self.ChimeraInterface.refreshGeom() #update model in chimera
         self.UpdateLabels() #re-apply labels if they are on
+        if self.App == "Tetr":
+            self.CheckSelectionFile()
         
 
 

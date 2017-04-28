@@ -199,6 +199,28 @@ class LevApp():
         
         return string
     
+    def SetSelection(self,nums):
+        sel=chimera.selection
+        
+        #clear any previous selection
+        
+        sel.clearCurrent()
+        
+        
+        #construct atom list from numbers
+        atomlist=[]
+        
+        atoms=self.model.atoms
+        
+        for n in nums:
+            atomlist.append(atoms[n-1])
+        
+        sel.setCurrent(atomlist)
+        
+        
+        
+        
+    
     #gets view option from GUI (opt) and gets chimera to change the view
     def SetViewOption(self,opt):
         self.style=opt
