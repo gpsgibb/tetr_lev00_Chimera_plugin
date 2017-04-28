@@ -195,7 +195,7 @@ class LevGUI(ModelessDialog):
         
         axisRow +=1
         self.lattice=Tk.IntVar()
-        Tk.Checkbutton(axisFrame,text="Toggle Lattice Vectors",variable=self.lattice,command=self.ToggleLatticeVectors).grid(row=axisRow,sticky=Tk.W,columnspan=2)
+        Tk.Checkbutton(axisFrame,text="Toggle Vectors (Vs)",variable=self.lattice,command=self.ToggleLatticeVectors).grid(row=axisRow,sticky=Tk.W,columnspan=2)
         
         optionsrow +=1
         
@@ -277,7 +277,7 @@ class LevGUI(ModelessDialog):
             filename=self.wkdir+"/vectors.vct"
             
             if not os.path.isfile(filename):
-                tkMessageBox.showwarning("Warning","No lattice vectors file (vectors.vct) present.")
+                tkMessageBox.showwarning("Warning","No vectors file (vectors.vct) present. Create this using the 'Vs' option in "+self.App)
                 self.lattice.set(0)
                 return
             
@@ -299,17 +299,29 @@ class LevGUI(ModelessDialog):
             
             f=open(self.appdir+"/lattice.bild","w")
             
-            v=vectors[0]
-            f.write(".color 0 1 1\n")
-            f.write(".arrow 0.0 0.0 0.0 "+str(v[0])+" "+str(v[1])+" "+str(v[2])+'\n')
-
-            v=vectors[1]
-            f.write(".color 1 1 0\n")
-            f.write(".arrow 0.0 0.0 0.0 "+str(v[0])+" "+str(v[1])+" "+str(v[2])+'\n')
-            
             try:
+                v=vectors[0]
+                f.write(".color 0 1 1\n")
+                f.write(".arrow 0.0 0.0 0.0 "+str(v[0])+" "+str(v[1])+" "+str(v[2])+'\n')
+
+                v=vectors[1]
+                f.write(".color 1 1 0\n")
+                f.write(".arrow 0.0 0.0 0.0 "+str(v[0])+" "+str(v[1])+" "+str(v[2])+'\n')
+                
                 v=vectors[2]
                 f.write(".color 1 0 1\n")
+                f.write(".arrow 0.0 0.0 0.0 "+str(v[0])+" "+str(v[1])+" "+str(v[2])+'\n')
+                
+                v=vectors[3]
+                f.write(".color 1 0.64 0\n")
+                f.write(".arrow 0.0 0.0 0.0 "+str(v[0])+" "+str(v[1])+" "+str(v[2])+'\n')
+                
+                v=vectors[4]
+                f.write(".color 0.58 0 0.82\n")
+                f.write(".arrow 0.0 0.0 0.0 "+str(v[0])+" "+str(v[1])+" "+str(v[2])+'\n')
+                
+                v=vectors[5]
+                f.write(".color 0.2 1 0.8\n")
                 f.write(".arrow 0.0 0.0 0.0 "+str(v[0])+" "+str(v[1])+" "+str(v[2])+'\n')
             except:
                 pass
