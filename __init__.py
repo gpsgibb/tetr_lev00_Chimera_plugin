@@ -93,7 +93,7 @@ def parse_list(list):
 class LevApp():
     def __init__(self,rootdir=ROOT_DIR,wkdir=WORKING_DIR):
         
-        self.geomProp = None
+        self.geomProp = time.time()
         
         self.model=None #will contain a reference to the model object in chimera
         self.oldmodel=None #will contain the previous model opened (retain it so its view settings can be copied to the new model)
@@ -137,21 +137,25 @@ class LevApp():
         self.Proc.stdin.write(inStr + "\n")
 
                 
-    def refreshGeom(self): #reloads the model (if the file has changed)
-        geomFile=self._getGeomPath()
+    def refreshGeom(self,force=False): #reloads the model (if the file has changed)
+        geomFile=self._getGeomPath(self.geomfile)
         if (os.path.isfile(geomFile)):
             mTime = os.stat(geomFile).st_mtime
             if mTime > self.geomProp: #if the file has changed since it was last opened
                 self.geomProp = mTime
-                self.openGeom() #open the new file
+                self.openGeom(geomFile) #open the new file
+            elif force:
+                self.openGeom(geomFile) #open the new file
                     
-    def openGeom(self):
-        geomFile=self._getGeomPath()
+    def openGeom(self,geomFile):
+        #geomFile=self._getGeomPath()
         
         self.oldmodel=self.model
         
         xf=None
         
+        
+        #try to close files
         if self.oldmodel !=None:
             print("Transferring information from old to new model")
             try:
@@ -164,7 +168,8 @@ class LevApp():
                 except:
                     pass
             self.oldmodel=None
-            
+        
+        print("Opening ",geomFile)
         self.om.open(geomFile,baseId=self.modelno) #reads the file, associating it with model number self.modelno
         self.model=self.getModel(self.modelno) #obtain a handle to the model
             
@@ -298,8 +303,8 @@ class LevApp():
             self.om.close(self.cube)
 
     
-    def _getGeomPath(self):
-        return os.path.join(self.wkdir, self.geomfile)
+    def _getGeomPath(self,file):
+        return os.path.join(self.wkdir, file)
     
     def getCubePath(self):
         return os.path.join(self.wkdir, self.cubefile)
@@ -342,7 +347,7 @@ class Lev00(LevApp):
         print("INITIALISING Lev00")
        
         
-        self.Proc = subprocess.Popen([rootdir+"/lev00","CHIMERA=.true."],
+        self.Proc = subprocess.Popen([rootdir+"/lev00","CHIMERA=TRUE"],
                                          stdin=subprocess.PIPE,
                                          stdout=subprocess.PIPE,
                                          stderr=subprocess.STDOUT,
@@ -355,7 +360,10 @@ class Lev00(LevApp):
         self.axisfile=lev00dir+"/axis.bild"
         self.latticefile=lev00dir+"/lattice.bild"
         
-        self.geomfile="gOpenMol.xyz"
+        self.geomfile="geom.xyz"
+        
+        self.cubeprop=time.time()
+        self.cubegeomfile="gOpenMol.xyz"
         self.cubefile="gOpenMol.cube"
         
         self.modelno=6
@@ -363,23 +371,50 @@ class Lev00(LevApp):
         LevApp.__init__(self,rootdir,wkdir)
         
         
+    def refreshGeom(self,opt=0,force=False):
         
-    def openGeom(self):
+        if opt==0:
+            try:
+                self.om.close(self.cube)
+            except:
+                print("No cube fle to close")
+                
+            LevApp.refreshGeom(self,force=force)
+        else:
+            cubeFile=self._getGeomPath(self.cubegeomfile)
+            if (os.path.isfile(cubeFile)):
+                mTime = os.stat(cubeFile).st_mtime
+                if mTime > self.cubeprop: #if the file has changed since it was last opened
+                    print("Trying to open cube file")
+                    self.cubeprop = mTime
+                    self.openGeom(cubeFile,opt=opt) #open the new file
+                elif force:
+                    self.openGeom(cubeFile,opt=opt) #open the new file
+                else:
+                    print("Failed to open Cube File")
+        
+        
+        
+    def openGeom(self,file,opt=0):
         #run the usual open geom
-        LevApp.openGeom(self)
+        LevApp.openGeom(self,file)
         
         #now add bit for the cube files
         
         if self.cube != None:
-            self.om.close(self.cube)
+                self.om.close(self.cube)
         
-        cubeFile=self.getCubePath()
+        if opt==1:
         
-        if (os.path.isfile(cubeFile)):
-            self.om.open(cubeFile,baseId=cubeno) #reads the file, associating it with model number self.modelno
-            self.cube=self.getModel(cubeno) #obtain a handle to the model
-        else:
-            print("No cube file to open!")
+            
+            
+            cubeFile=self.getCubePath()
+            
+            if (os.path.isfile(cubeFile)):
+                self.om.open(cubeFile,baseId=cubeno) #reads the file, associating it with model number self.modelno
+                self.cube=self.getModel(cubeno) #obtain a handle to the model
+            else:
+                print("No cube file to open!")
         
 
        

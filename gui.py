@@ -6,6 +6,7 @@ Created on Tue May 31 11:42:13 2016
 """
 
 import Tkinter as Tk
+import ttk
 import tkMessageBox
 import tkFileDialog
 from CGLtk import ScrolledText
@@ -149,6 +150,35 @@ class LevGUI(ModelessDialog):
         Tk.Checkbutton(viewFrame,text="Show Species" ,variable=self.showAtom,command=self.UpdateLabels).grid(row=framerow,column=framecol,sticky=Tk.W)
         
         
+        if self.App=="Lev00":
+            
+            framerow+=1
+            
+            ttk.Separator(viewFrame,orient=Tk.HORIZONTAL).grid(row=framerow,sticky=Tk.W+Tk.E)
+            
+            framerow+=1
+            
+            Tk.Label(viewFrame, text="File Display:").grid(row=framerow, sticky=Tk.W)
+            
+            lev00options = [
+                ("Full Structure",0),
+                ("Density",1)
+                ]
+            
+            self.levvoption=Tk.IntVar()
+            self.levvoption.set(0)
+            
+            self.lev00radio=[]
+            for txt,val in lev00options:
+                framerow+=1
+                self.lev00radio.append(Tk.Radiobutton(viewFrame,text=txt,padx=20,variable=self.levvoption,
+                            command=self.SetLev00ViewOption,value=val))
+                self.lev00radio[-1].grid(row=framerow, column=framecol,sticky=Tk.W)
+            
+            self.lev00radio[1].config(state=Tk.DISABLED)
+            
+        
+        
         optionsrow +=1
         Tk.Label(optionsFrame,text=" ").grid(row=optionsrow) #blank space
         
@@ -269,16 +299,22 @@ class LevGUI(ModelessDialog):
    
    
    
-    def CheckSelectionFile(self):
-        print("Checking for selection file")
-        if os.path.isfile(self.wkdir+"/tetr.slc"):
-            print("tetr.slc exists!")
+    def CheckSelectionFile(self,force=False):
+        if self.App == "Tetr":
+            file=self.wkdir+"/tetr.slc"
+        else:
+            file=self.wkdir+"/lev00.slc"
             
-            if self.timestamp < os.stat(self.wkdir+"/tetr.slc").st_mtime:
-                self.timestamp = os.stat(self.wkdir+"/tetr.slc").st_mtime
+        print("Checking for selection file")
+        if os.path.isfile(file):
+            print("selection file exists!")
+            
+            if self.timestamp < os.stat(file).st_mtime or force:
+                if not force:
+                    self.timestamp = os.stat(file).st_mtime
                 
                 #read file
-                f=open(self.wkdir+"/tetr.slc","r")
+                f=open(file,"r")
 
                 atoms=[]
 
@@ -288,6 +324,8 @@ class LevGUI(ModelessDialog):
                         atoms.append(int(item))
                     
                 print(atoms)
+                
+                f.close()
                 #put selection into tetr
                 
                 self.ChimeraInterface.SetSelection(atoms)
@@ -470,10 +508,18 @@ class LevGUI(ModelessDialog):
             tkMessageBox.showerror("Error","The "+self.App+" process has ended (user-exited or crashed). Please restart "+self.App+" via the 'Restart' button.")
             return
         self.updateText(outputText) #update tetr/lev00 output text
-        self.ChimeraInterface.refreshGeom() #update model in chimera
-        self.UpdateLabels() #re-apply labels if they are on
-        if self.App == "Tetr":
+        if self.App == "Lev00":
+            val = self.levvoption.get()
+            self.ChimeraInterface.refreshGeom(opt=val)
+            if val == 0:
+                self.CheckSelectionFile()
+            self.CheckforCube()
+        else:
+            self.ChimeraInterface.refreshGeom() #update model in chimera
             self.CheckSelectionFile()
+        self.UpdateLabels() #re-apply labels if they are on
+        #if self.App == "Tetr":
+            
         
 
 
@@ -800,6 +846,8 @@ class Lev00Dialog(LevGUI):
         
         self.pausetime=1.5 #time to wait between submitting a command and checking for output/refreshing the text (seconds)
         
+        self.starttime=time.time()
+        
         dir, file = os.path.split(__file__)
         icon = os.path.join(dir, 'Lev00Logo.tiff')
         chimera.tkgui.app.toolbar.add(icon,
@@ -851,6 +899,25 @@ class Lev00Dialog(LevGUI):
         
     def fillInUI(self,parent):
         LevGUI.fillInUI(self,parent)
+        
+    def SetLev00ViewOption(self,e=None):
+        val = self.levvoption.get()
+        
+        self.ChimeraInterface.refreshGeom(opt=val,force=True)
+        if val==0:
+            self.CheckSelectionFile(force=True)
+            
+    
+    #enables the cube file vewing option when a new cube file has been created
+    def CheckforCube(self):
+        cubeFile=self.wkdir+"/gOpenMol.cube"
+        if (os.path.isfile(cubeFile)):
+                mTime = os.stat(cubeFile).st_mtime
+                if mTime > self.starttime:
+                    print "New cube file!"
+                    self.lev00radio[1].config(state=Tk.NORMAL)
+                else:
+                    print "No new Cube file!"
             
             
             
