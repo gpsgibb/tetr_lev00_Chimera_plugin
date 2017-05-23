@@ -30,6 +30,8 @@ class LevGUI(ModelessDialog):
         
         self.timestamp=time.time()
         
+        self.prevtext=""
+        
         row = 0
         
         #allow window (and things within it) to be resizable
@@ -500,14 +502,43 @@ class LevGUI(ModelessDialog):
         #self._updateText(inString + "\n")
         self.fulltext+=inString+"\n"
         self.consoleInput.set("")
+        self.prevtext=""
         
         time.sleep(self.pausetime) #wait for tetr/lev00 to do its thing
+        #try:
+            #outputText = self.ChimeraInterface.getOutput()
+        #except IOError:
+            #tkMessageBox.showerror("Error","The "+self.App+" process has ended (user-exited or crashed). Please restart "+self.App+" via the 'Restart' button.")
+            #return
+        #self.updateText(outputText) #update tetr/lev00 output text
+        #if self.App == "Lev00":
+            #val = self.levvoption.get()
+            #self.ChimeraInterface.refreshGeom(opt=val)
+            #if val == 0:
+                #self.CheckSelectionFile()
+            #self.CheckforCube()
+        #else:
+            #self.ChimeraInterface.refreshGeom() #update model in chimera
+            #self.CheckSelectionFile()
+        #self.UpdateLabels() #re-apply labels if they are on
+        #if self.App == "Tetr":
+            
+    
+    
+    def timer(self):
+        
         try:
             outputText = self.ChimeraInterface.getOutput()
         except IOError:
             tkMessageBox.showerror("Error","The "+self.App+" process has ended (user-exited or crashed). Please restart "+self.App+" via the 'Restart' button.")
             return
-        self.updateText(outputText) #update tetr/lev00 output text
+        except:
+            print("SOMETHING IS WRONG")
+            return
+        
+        if outputText != "":
+            self.updateText(outputText) #update tetr/lev00 output text
+        
         if self.App == "Lev00":
             val = self.levvoption.get()
             self.ChimeraInterface.refreshGeom(opt=val)
@@ -518,14 +549,14 @@ class LevGUI(ModelessDialog):
             self.ChimeraInterface.refreshGeom() #update model in chimera
             self.CheckSelectionFile()
         self.UpdateLabels() #re-apply labels if they are on
-        #if self.App == "Tetr":
-            
         
+        self.parent.after(500,self.timer)
+    
 
 
     def updateText(self, text):
         self.fulltext+=text
-        self.prevtext=text
+        self.prevtext+=text
        
         if self.toption==0:
             self.displayText(self.prevtext)
@@ -735,6 +766,7 @@ class LevGUI(ModelessDialog):
             self.ChimeraInterface.CloseModels()
             self.ChimeraInterface = None
             self.fulltext=""
+            self.prevtext=""
             self.updateText(self.App+" starting...\n")
             self.getWorkingDir()
             if self.App=="Tetr":
@@ -749,6 +781,7 @@ class LevGUI(ModelessDialog):
             self.ToggleLatticeVectors()
             self.wdirlabel.config(text="wkdir= '"+self.wkdir+"'")
             self.UpdateLabels()
+            self.timer()
             
     
     #produces a dialogue that offers help on the reset button
@@ -826,6 +859,8 @@ class TetrDialog(LevGUI):
         #set view options to those selected in the GUI
         self.SetViewOption()
         
+        self.timer()
+        
     def fillInUI(self,parent):
         LevGUI.fillInUI(self,parent)
         
@@ -844,7 +879,7 @@ class Lev00Dialog(LevGUI):
     
     def __init__(self,sessionData=None, *args, **kw):
         
-        self.pausetime=1.5 #time to wait between submitting a command and checking for output/refreshing the text (seconds)
+        self.pausetime=0.5 #time to wait between submitting a command and checking for output/refreshing the text (seconds)
         
         self.starttime=time.time()
         
@@ -895,6 +930,8 @@ class Lev00Dialog(LevGUI):
         
         #set view options to those selected in the GUI
         self.SetViewOption()
+        
+        self.timer()
         
         
     def fillInUI(self,parent):
