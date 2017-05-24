@@ -798,6 +798,8 @@ class LevGUI(ModelessDialog):
                 self.ChimeraInterface = Tetr.Tetr(self.rootdir,self.wkdir)
             else:
                 self.ChimeraInterface = Tetr.Lev00(self.rootdir,self.wkdir)
+                self.lev00radio[1].config(state=Tk.DISABLED)
+                self.levvoption.set(0)
             time.sleep(self.pausetime)
             self.updateText(self.ChimeraInterface.getOutput())
             self.ChimeraInterface.refreshGeom()
@@ -981,6 +983,9 @@ class Lev00Dialog(LevGUI):
                 if mTime > self.starttime:
                     print "New cube file!"
                     self.lev00radio[1].config(state=Tk.NORMAL)
+                    self.levvoption.set(1)
+                    self.ChimeraInterface.refreshGeom(opt=1,force=True)
+                    self.starttime=mTime
                 else:
                     print "No new Cube file!"
             
