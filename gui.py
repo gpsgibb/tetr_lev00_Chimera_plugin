@@ -230,7 +230,9 @@ class LevGUI(ModelessDialog):
         
         axisRow +=1
         self.lattice=Tk.IntVar()
-        Tk.Checkbutton(axisFrame,text="Toggle Vectors (Vs)",variable=self.lattice,command=self.ToggleLatticeVectors).grid(row=axisRow,sticky=Tk.W,columnspan=2)
+        self.LatVecButton=Tk.Checkbutton(axisFrame,text="Toggle Vectors (Vs)",variable=self.lattice,command=self.ToggleLatticeVectors)
+        self.LatVecButton.grid(row=axisRow,sticky=Tk.W,columnspan=2)
+        self.LatVecButton.config(state=Tk.DISABLED)
         
         optionsrow +=1
         
@@ -335,6 +337,24 @@ class LevGUI(ModelessDialog):
    
     def unfinished(self,e=None):
         print("Nothing to see here... yet")
+        
+        
+    def checkVectorsToggle(self):
+        filename=self.wkdir+"/vectors.vct"
+        
+        if os.path.isfile(filename):
+            if self.latvectime < os.stat(filename).st_mtime:
+                
+                self.latvectime = os.stat(filename).st_mtime
+                
+                self.LatVecButton.config(state=Tk.NORMAL)
+                
+                self.lattice.set(1)
+                
+                self.ToggleLatticeVectors()
+           
+        
+
         
     def ToggleLatticeVectors(self,e=None):
         if self.lattice.get() == 1:
@@ -548,10 +568,12 @@ class LevGUI(ModelessDialog):
         else:
             self.ChimeraInterface.refreshGeom() #update model in chimera
             self.CheckSelectionFile()
+        self.checkVectorsToggle()
         self.UpdateLabels() #re-apply labels if they are on
         
         self.parent.after(500,self.timer)
     
+
 
 
     def updateText(self, text):
@@ -767,6 +789,9 @@ class LevGUI(ModelessDialog):
             self.ChimeraInterface = None
             self.fulltext=""
             self.prevtext=""
+            self.latvectime=time.time()
+            self.lattice.set(0)
+            self.LatVecButton.config(state=Tk.DISABLED)
             self.updateText(self.App+" starting...\n")
             self.getWorkingDir()
             if self.App=="Tetr":
@@ -823,6 +848,8 @@ class TetrDialog(LevGUI):
         self.toption=0
         ModelessDialog.__init__(self, *args, **kw)
         print "In init"
+        
+        self.latvectime=time.time()
         
         self.home=os.path.expanduser("~")
         self.appdir=self.home+"/.Tetr"
@@ -882,6 +909,7 @@ class Lev00Dialog(LevGUI):
         self.pausetime=0.5 #time to wait between submitting a command and checking for output/refreshing the text (seconds)
         
         self.starttime=time.time()
+        self.latvectime=time.time()
         
         dir, file = os.path.split(__file__)
         icon = os.path.join(dir, 'Lev00Logo.tiff')
