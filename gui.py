@@ -669,6 +669,87 @@ class LevGUI(ModelessDialog):
         else:
             self.ChimeraInterface.ShowAxis(False)
             
+            
+            
+    def getShell(self):
+        configfile=self.appdir+"/shell.dat"
+        
+        if os.path.isfile(configfile):
+            f=open(configfile,"r")
+            myshell=f.read()
+            if os.path.isfile(myshell):
+                self.myshell=myshell
+                return
+            else:
+                self.chooseShell()
+                return
+        else:
+            self.chooseShell()
+        
+        
+    def chooseShell(self):
+        win=Tk.Toplevel(self.parent)
+        
+        win.title("Test program")
+        self.label=Tk.Label(win,text="Please choose the shell you would like to execute "+self.App+" in:")
+        
+        options = [
+                ("/bin/sh",0),
+                ("/bin/bash",1),
+                ("/bin/csh",2),
+                ("/bin/tcsh",3)
+            ]
+            
+        option=Tk.IntVar()
+        option.set(0) #set initial view option 
+        
+        row=0
+        
+        self.label.grid(row=row,sticky=Tk.W)
+        
+        
+        for txt,val in options:
+            row+=1
+            Tk.Radiobutton(win,text=txt,padx=20,variable=option,
+                            command=None,value=val).grid(row=row,sticky=Tk.W)
+        row+=1
+        
+        Tk.Button(win,text="Confirm",command=lambda: self.setShell(option.get(),win)).grid(row=row)
+        
+        win.transient(self.parent)
+        win.grab_set()
+        self.parent.wait_window(win)
+        
+    def setShell(self,val,win):
+        if val==0:
+            self.myshell="/bin/sh"
+        elif val==1:
+            self.myshell="/bin/bash"
+        elif val==2:
+            self.myshell="/bin/csh"
+        elif val==3:
+            self.myshell="/bin/tcsh"
+        else:
+            self.myshell=None
+       
+       
+        print "You chose ",self.myshell
+
+        configfile=self.appdir+"/shell.dat"
+
+        f=open(configfile,"w")
+        f.write(self.myshell)
+        f.close()
+
+        win.destroy()
+       
+       
+       
+       
+    
+    
+    
+            
     #try to find the Tetr/Lev00 root directory. If not, ask the user to give it        
     def getappdir(self):
         
@@ -691,6 +772,7 @@ class LevGUI(ModelessDialog):
         
          # if the tetr/lev00 root file exists, use the path in it, else prompt the user
         configfile=self.appdir+"/"+self.App.lower()+"_root.dat"
+        
         if not os.path.isfile(configfile):
             print("not a file")
             self.SetRoot()
@@ -795,9 +877,9 @@ class LevGUI(ModelessDialog):
             self.updateText(self.App+" starting...\n")
             self.getWorkingDir()
             if self.App=="Tetr":
-                self.ChimeraInterface = Tetr.Tetr(self.rootdir,self.wkdir)
+                self.ChimeraInterface = Tetr.Tetr(self.rootdir,self.wkdir,self.myshell)
             else:
-                self.ChimeraInterface = Tetr.Lev00(self.rootdir,self.wkdir)
+                self.ChimeraInterface = Tetr.Lev00(self.rootdir,self.wkdir,self.myshell)
                 self.lev00radio[1].config(state=Tk.DISABLED)
                 self.levvoption.set(0)
             time.sleep(self.pausetime)
@@ -860,6 +942,8 @@ class TetrDialog(LevGUI):
         if not (os.path.isdir(self.appdir)):
             print "Making ",self.appdir
             os.mkdir(self.appdir)
+            
+        self.getShell()    
         
         #Look for the tetr root directory. Prompt user if necessary
         self.getappdir()
@@ -868,7 +952,7 @@ class TetrDialog(LevGUI):
         self.getWorkingDir()
         
         # Create tetr process
-        self.ChimeraInterface = Tetr.Tetr(self.rootdir,self.wkdir)
+        self.ChimeraInterface = Tetr.Tetr(self.rootdir,self.wkdir,self.myshell)
         
         self.wdirlabel.config(text="wkdir= '"+self.wkdir+"'")
         
@@ -934,6 +1018,8 @@ class Lev00Dialog(LevGUI):
         if not (os.path.isdir(self.appdir)):
             print "Making ",self.appdir
             os.mkdir(self.appdir)
+            
+        self.getShell()    
         
         #Look for the Lev00 root directory. Prompt user if necessary
         self.getappdir()
@@ -943,7 +1029,7 @@ class Lev00Dialog(LevGUI):
         self.getWorkingDir()
         
         # Create lev00 process
-        self.ChimeraInterface = Tetr.Lev00(self.rootdir,self.wkdir)
+        self.ChimeraInterface = Tetr.Lev00(self.rootdir,self.wkdir,self.myshell)
         
         self.wdirlabel.config(text="wkdir= '"+self.wkdir+"'")
         

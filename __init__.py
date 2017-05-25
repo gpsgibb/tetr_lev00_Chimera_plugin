@@ -311,16 +311,17 @@ class LevApp():
 
 
 class Tetr(LevApp):
-    def __init__(self,rootdir,wkdir):
+    def __init__(self,rootdir,wkdir,myshell="/bin/bash"):
         
         print("INITIALISING TETR")
        
         
-        self.Proc = subprocess.Popen([rootdir+"/tetr","CHIMERA=.true."],
+        self.Proc = subprocess.Popen(["-l",rootdir+"/tetr","CHIMERA=.true."],
                                          stdin=subprocess.PIPE,
                                          stdout=subprocess.PIPE,
                                          stderr=subprocess.STDOUT,
-                                         shell=False,
+                                         shell=True,
+                                         executable=myshell,
                                          universal_newlines=True,
                                          cwd=wkdir,
                                          env=dict(os.environ, HOME_TETR=rootdir))
@@ -342,19 +343,20 @@ class Tetr(LevApp):
         
         
 class Lev00(LevApp):
-    def __init__(self,rootdir,wkdir):
+    def __init__(self,rootdir,wkdir,myshell="/bin/bash"):
         
         print("INITIALISING Lev00")
        
         
-        self.Proc = subprocess.Popen([rootdir+"/lev00","CHIMERA=TRUE"],
+        self.Proc = subprocess.Popen(["-l",rootdir+"/lev00","CHIMERA=TRUE"],
                                          stdin=subprocess.PIPE,
                                          stdout=subprocess.PIPE,
                                          stderr=subprocess.STDOUT,
-                                         shell=False,
+                                         shell=True,
+                                         executable=myshell,
                                          universal_newlines=True,
-                                         cwd=wkdir,
-                                         env=dict(os.environ))
+                                         cwd=wkdir)#,
+                                        # env=dict(os.environ))
         
         lev00dir=home+"/.Lev00"
         self.axisfile=lev00dir+"/axis.bild"
