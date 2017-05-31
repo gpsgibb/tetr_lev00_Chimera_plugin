@@ -12,6 +12,7 @@ import subprocess
 import time
 import os
 import chimera
+import stat
 
 WORKING_DIR = '/Users/ggibb2/Projects/CP2K'
 WORKING_DIR= '/Users/ggibb2/Projects/CP2K/tetr_4.97'
@@ -315,8 +316,23 @@ class Tetr(LevApp):
         
         print("INITIALISING TETR")
        
+       
+        tetrdir=home+"/.Tetr"
         
-        self.Proc = subprocess.Popen(["-l",rootdir+"/tetr","CHIMERA=.true."],
+        str=rootdir+"/tetr CHIMERA=.TRUE."
+        print("Command to run=",str)
+        
+        
+        f=open(tetrdir+"/run.sh","w")
+        f.write("#!"+myshell+" --login\n")
+        f.write(str)
+        f.close()
+        
+        st = os.stat(tetrdir+"/run.sh")
+        os.chmod(tetrdir+"/run.sh", st.st_mode | stat.S_IEXEC)
+        
+        
+        self.Proc = subprocess.Popen([tetrdir+"/run.sh"],
                                          stdin=subprocess.PIPE,
                                          stdout=subprocess.PIPE,
                                          stderr=subprocess.STDOUT,
@@ -326,7 +342,7 @@ class Tetr(LevApp):
                                          cwd=wkdir,
                                          env=dict(os.environ, HOME_TETR=rootdir))
         
-        tetrdir=home+"/.Tetr"
+        
         self.axisfile=tetrdir+"/axis.bild"
         self.latticefile=tetrdir+"/lattice.bild"
         
@@ -346,9 +362,22 @@ class Lev00(LevApp):
     def __init__(self,rootdir,wkdir,myshell="/bin/bash"):
         
         print("INITIALISING Lev00")
+        
+        str=rootdir+"/lev00 CHIMERA=TRUE"
+        print("Command to run=",str)
+        
+        lev00dir=home+"/.Lev00"
+        
+        f=open(lev00dir+"/run.sh","w")
+        f.write("#!"+myshell+" --login\n")
+        f.write(str)
+        f.close()
+        
+        st = os.stat(lev00dir+"/run.sh")
+        os.chmod(lev00dir+"/run.sh", st.st_mode | stat.S_IEXEC)
        
         
-        self.Proc = subprocess.Popen(["-l",rootdir+"/lev00","CHIMERA=TRUE"],
+        self.Proc = subprocess.Popen(lev00dir+"/run.sh",
                                          stdin=subprocess.PIPE,
                                          stdout=subprocess.PIPE,
                                          stderr=subprocess.STDOUT,
@@ -358,7 +387,7 @@ class Lev00(LevApp):
                                          cwd=wkdir)#,
                                         # env=dict(os.environ))
         
-        lev00dir=home+"/.Lev00"
+        
         self.axisfile=lev00dir+"/axis.bild"
         self.latticefile=lev00dir+"/lattice.bild"
         
