@@ -323,6 +323,8 @@ class Tetr(LevApp):
         print("Command to run=",str)
         
         
+        f=open(tetrdir+"/run.sh","w")
+        
         if myshell=="/bin/bash" or myshell == "/bin/sh":
             f.write("#!"+myshell+" -login\n")
         else:
