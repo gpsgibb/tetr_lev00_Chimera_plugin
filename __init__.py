@@ -324,7 +324,7 @@ class Tetr(LevApp):
         
         
         f=open(tetrdir+"/run.sh","w")
-        f.write("#!"+myshell+" --login\n")
+        f.write("#!"+myshell+" -l\n")
         f.write(str)
         f.close()
         
@@ -369,7 +369,7 @@ class Lev00(LevApp):
         lev00dir=home+"/.Lev00"
         
         f=open(lev00dir+"/run.sh","w")
-        f.write("#!"+myshell+" --login\n")
+        f.write("#!"+myshell+" -l\n")
         f.write(str)
         f.close()
         
