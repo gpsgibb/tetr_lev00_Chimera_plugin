@@ -323,8 +323,10 @@ class Tetr(LevApp):
         print("Command to run=",str)
         
         
-        f=open(tetrdir+"/run.sh","w")
-        f.write("#!"+myshell+" -l\n")
+        if myshell=="/bin/bash" or myshell == "/bin/sh":
+            f.write("#!"+myshell+" -login\n")
+        else:
+            f.write("#!"+myshell+"\n")
         f.write(str)
         f.close()
         
@@ -369,7 +371,11 @@ class Lev00(LevApp):
         lev00dir=home+"/.Lev00"
         
         f=open(lev00dir+"/run.sh","w")
-        f.write("#!"+myshell+" -l\n")
+        
+        if myshell=="/bin/bash" or myshell == "/bin/sh":
+            f.write("#!"+myshell+" -login\n")
+        else:
+            f.write("#!"+myshell+"\n")
         f.write(str)
         f.close()
         
