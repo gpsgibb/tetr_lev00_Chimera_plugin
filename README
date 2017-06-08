@@ -37,8 +37,8 @@ to contain the Fortran compiler of your choice (e.g. gfortran, ifort etc...). Fo
 Tetr, set the environment variable HOME_TETR in your shell (e.g. inside your .bashrc)
 to point to the Tetr source directory.
 
-Finally, the plugin's directory must be placed inside the "share" directory within the
-Chimera directory tree. In Linux this will be kept in:
+Finally, the plugin's directory (tetr_lev00_Chimera_plugin) must be placed inside the 
+"share" directory within the Chimera directory tree. In Linux this will be kept in:
 /path/to/UCSF_Chimera/share
 Whilst on MacOS this will be located in
 /path/to/Chimera.app/Contents/Resources/share
