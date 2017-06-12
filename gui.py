@@ -12,7 +12,7 @@ import tkFileDialog
 from CGLtk import ScrolledText
 import chimera
 import os
-import Tetr
+import tetr_lev00_Chimera_plugin
 import time
 from chimera.baseDialog import ModelessDialog
 
@@ -952,7 +952,7 @@ class TetrDialog(LevGUI):
         self.getWorkingDir()
         
         # Create tetr process
-        self.ChimeraInterface = Tetr.Tetr(self.rootdir,self.wkdir,self.myshell)
+        self.ChimeraInterface = tetr_lev00_Chimera_plugin.Tetr(self.rootdir,self.wkdir,self.myshell)
         
         self.wdirlabel.config(text="wkdir= '"+self.wkdir+"'")
         
@@ -1029,7 +1029,7 @@ class Lev00Dialog(LevGUI):
         self.getWorkingDir()
         
         # Create lev00 process
-        self.ChimeraInterface = Tetr.Lev00(self.rootdir,self.wkdir,self.myshell)
+        self.ChimeraInterface = tetr_lev00_Chimera_plugin.Lev00(self.rootdir,self.wkdir,self.myshell)
         
         self.wdirlabel.config(text="wkdir= '"+self.wkdir+"'")
         
