@@ -877,9 +877,9 @@ class LevGUI(ModelessDialog):
             self.updateText(self.App+" starting...\n")
             self.getWorkingDir()
             if self.App=="Tetr":
-                self.ChimeraInterface = Tetr.Tetr(self.rootdir,self.wkdir,self.myshell)
+                self.ChimeraInterface = tetr_lev00_Chimera_plugin.Tetr(self.rootdir,self.wkdir,self.myshell)
             else:
-                self.ChimeraInterface = Tetr.Lev00(self.rootdir,self.wkdir,self.myshell)
+                self.ChimeraInterface = tetr_lev00_Chimera_plugin.Lev00(self.rootdir,self.wkdir,self.myshell)
                 self.lev00radio[1].config(state=Tk.DISABLED)
                 self.levvoption.set(0)
             time.sleep(self.pausetime)
