@@ -475,11 +475,19 @@ class LevGUI(ModelessDialog):
         else:
             self.consoleInput.set(text)
     
-    #find the length of input lines in real8.inc in the tetr source directory
+    #find the length of input lines in real8.inc or real8.f90 in the tetr source directory
     def getmaxlen(self):
 
         file = self.rootdir+"/real8.inc"
-        f=open(file,"r")
+        try:
+            f=open(file,"r")
+        except:
+            try:
+                file = self.rootdir+"/real8.f90"
+                f=open(file,"r")
+            except:
+                print("Error, no real8.inc or real8.f90 files fonud!")
+        
 
         n=0
         length=-1
