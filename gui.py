@@ -982,6 +982,9 @@ class TetrDialog(LevGUI):
         
         self.timer()
         
+        #Ensure the text entry box has focus
+        self.entry.focus_force()
+        
     def fillInUI(self,parent):
         LevGUI.fillInUI(self,parent)
         
@@ -1056,6 +1059,9 @@ class Lev00Dialog(LevGUI):
         self.SetViewOption()
         
         self.timer()
+        
+        #Ensure the text entry box has focus
+        self.entry.focus_force()
         
         
     def fillInUI(self,parent):
